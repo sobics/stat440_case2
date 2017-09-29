@@ -33,13 +33,22 @@ kelly <- read.table("kellydat.txt", header = T)
 ```
 
 #Cleaning the Data
+#redo the count of symptoms
 ```{r}
+
 ```
 
 #Exploratory Data Analysis
+-talk about bias
+  -look for racial and gender bias
+  
+-compare the differences between who was rejected and who wasn't (fail)
+
 ```{r}
+
 ```
 
 #Possible Approaches to the Data
 ```{r}
+
 ```
