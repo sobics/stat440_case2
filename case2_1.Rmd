@@ -27,5 +27,5 @@ all4 = 0/1 indicator all 4 main symptoms
 
 #Read Dataset
 ```{r}
-
+dat = read.table("kellydat.txt", header=TRUE)
 ```
