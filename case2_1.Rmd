@@ -52,8 +52,8 @@ kelly <- kelly %>% mutate(count_sn = sn1 + sn2*2 + sn3*3 + all4*4) %>% select(-c
 -compare the differences between who was rejected and who wasn't (fail)
 
 ```{r}
-
-hist(kelly$count_sn,breaks=100)
+hist(kelly$nctdel,breaks=50) # dist of wait times
+hist(kelly$count_sn,breaks=50) # dist of symptom counts
 
 ```
 
