@@ -4,6 +4,8 @@ author: "Sonia Xu"
 date: "September 29, 2017"
 output: html_document
 ---
+
+<!--Week 1: Case study introduced in detail in the Wed lecture including questions from the students, and some relevant background on how the data were collected, the scientific focus, common ways to analyze the data, etc.  Students are expected to download the data, conduct exploratory/descriptive analyses of the data, clean the data (as needed) and outline several possible approaches for analyzing the data to address the scientific goals of the study by the next week’s lecture (at which point a write-up describing the results from the initial analyses and the different potential approaches to analysis) is due.  These interim reports will be graded, and should include a short description of the roles of each of the “authors” (team members) in the work.  -->
 <!---
 CASE STUDY 2: 
 
@@ -22,3 +24,8 @@ sn2 = 0/1 indicator 2 main symptoms
 sn3 = 0/1 indicator 3 main symptoms 
 all4 = 0/1 indicator all 4 main symptoms
 --->
+
+#Read Dataset
+```{r}
+
+```
