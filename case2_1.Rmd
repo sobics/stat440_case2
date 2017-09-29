@@ -55,6 +55,8 @@ After cleaning the dataset, there are five covariates that can predict the respo
 -compare the differences between who was rejected and who wasn't (fail)
 
 ```{r}
+hist(kelly$nctdel,breaks=50) # dist of wait times
+hist(kelly$count_sn,breaks=50) # dist of symptom counts
 
 ```
 
