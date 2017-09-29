@@ -26,6 +26,11 @@ sn2 = 0/1 indicator 2 main symptoms
 sn3 = 0/1 indicator 3 main symptoms 
 all4 = 0/1 indicator all 4 main symptoms
 --->
+#load libraries
+```{r}
+library(dplyr)
+library(magrittr)
+```
 
 #Read in Dataset
 ```{r}
@@ -35,6 +40,7 @@ kelly <- read.table("kellydat.txt", header = T)
 #Cleaning the Data
 #redo the count of symptoms
 ```{r}
+kelly <- kelly %>% mutate(count_sn = sn1 + sn2*2 + sn3*3 + all4*4)
 
 ```
 
@@ -52,3 +58,4 @@ kelly <- read.table("kellydat.txt", header = T)
 ```{r}
 
 ```
+
