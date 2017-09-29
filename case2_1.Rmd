@@ -1,0 +1,24 @@
+---
+title: "Case 2 Part 1"
+author: "Sonia Xu"
+date: "September 29, 2017"
+output: html_document
+---
+<!---
+CASE STUDY 2: 
+
+BACKGROUND: Study of time to critical neurological assessment for patients with stroke-like symptoms who are admitted to the emergency room.  A possible predictor is number of major stroke symptoms reported, ranging from 0 to 4.  Treatment for acute stroke includes thrombolytic therapy, which can potentially improve neurological functioning for ischemic stroke patients if administered soon after symptom onset (within 3 hours).  Since treating patients quickly is critically important for their long-term prognosis, minimizing the times from symptom onset to emergency room (ED) arrival, from ED arrival to diagnosis, and from diagnosis to treatment is of paramount concern.
+
+INTEREST: Factors predictive of the time to critical neurological assessment following admission to the ED for n=335 patients with mild to moderate motor impairment.  The goal of the analysis is to perform inferences on the impact of clinical presentation, gender and race on time to neurological assessment.  Clinical presentation is measured as a count of reported major stroke symptoms, including headache, loss of motor skills or weakness, trouble talking or understanding, and vision problems.
+
+Variable key: 
+nctdel = min of neurologist time to assessment & CT scan from arrival at ER
+fail = 1 if got neurologist/CT scan & 0 otherwise
+male = 1 if male, 0=female
+black = 1 if black, 0=not black 
+hisp = 1 if hispanic, 0=not hispanic
+sn1 = 0/1 indicator 1 main symptom
+sn2 = 0/1 indicator 2 main symptoms
+sn3 = 0/1 indicator 3 main symptoms 
+all4 = 0/1 indicator all 4 main symptoms
+--->
