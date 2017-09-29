@@ -53,6 +53,8 @@ kelly <- kelly %>% mutate(count_sn = sn1 + sn2*2 + sn3*3 + all4*4) %>% select(-c
 
 ```{r}
 
+hist(kelly$count_sn,breaks=100)
+
 ```
 
 #Possible Approaches to the Data
