@@ -49,6 +49,9 @@ kable(head(kelly))
 #Exploratory Data Analysis
 After cleaning the dataset, there are five covariates that can predict the response, wait time. Since three of these covariates are associated with patient demographics, we hypothesize that there may exist social bias in the wait time of a patient, and explore this assumption via exploratory data analysis.
 
+##Racial Bias
+
+##Gender Bias
 -talk about bias
   -look for racial and gender bias
   
@@ -62,6 +65,8 @@ hist(kelly$count_sn,breaks=50) # dist of symptom counts
 ```
 
 #Possible Approaches to the Data
-We could model the wait time for each patient as a Poisson Process. 
+We could model the wait time for each patient as a Poisson distribution. However, after attempting to fit a Poisson distribution with $\lambda = 1.46$, we notice that it does not capture the data robustly enough. Below are two potential approaches to alleviate this challenge:
 
+1. We plan to separate the model into bins, and to model each bin with a piecewise constant hazard.
 
+2. We could avoid modeling the data and non-parametrically estimate it via a Kaplan-Meier estimate.
