@@ -70,3 +70,5 @@ We could model the wait time for each patient as a Poisson distribution. However
 1. We plan to separate the model into bins, and to model each bin with a piecewise constant hazard.
 
 2. We could avoid modeling the data and non-parametrically estimate it via a Kaplan-Meier estimate.
+
+3. We could also cluster the data to check to see if people with similar characters have similar wait times, or if there is not a distinction based on the covariates.
