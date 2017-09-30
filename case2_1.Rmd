@@ -2,7 +2,9 @@
 title: "Case 2 Part 1"
 author: "Sonia Xu"
 date: "September 29, 2017"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 <!--Week 1: Case study introduced in detail in the Wed lecture including questions from the students, and some relevant background on how the data were collected, the scientific focus, common ways to analyze the data, etc.  Students are expected to download the data, conduct exploratory/descriptive analyses of the data, clean the data (as needed) and outline several possible approaches for analyzing the data to address the scientific goals of the study by the next week’s lecture (at which point a write-up describing the results from the initial analyses and the different potential approaches to analysis) is due.  These interim reports will be graded, and should include a short description of the roles of each of the “authors” (team members) in the work.  -->
@@ -65,10 +67,12 @@ hist(kelly$count_sn,breaks=50) # dist of symptom counts
 ```
 
 #Possible Approaches to the Data
-We could model the wait time for each patient as a Poisson distribution. However, after attempting to fit a Poisson distribution with $\lambda = 1.46$, we notice that it does not capture the data robustly enough. Below are two potential approaches to alleviate this challenge:
+In an effort to understand factors predictive of wait time, we could model the wait time for each patient as a Poisson distribution. However, after attempting to fit a Poisson distribution with $\lambda = 1.46$, we noticed that it did not capture the data robustly enough. Below are three potential approaches to alleviate this challenge:
 
 1. We plan to separate the model into bins, and to model each bin with a piecewise constant hazard.
 
 2. We could avoid modeling the data and non-parametrically estimate it via a Kaplan-Meier estimate.
 
-3. We could also cluster the data to check to see if people with similar characters have similar wait times, or if there is not a distinction based on the covariates.
+3. We could also cluster the data to check to see whether or not people with similar characters have similar wait times from the waiting room to the ER.
+
+4. Decision trees(?)
