@@ -53,18 +53,34 @@ kable(head(kelly))
 After cleaning the dataset, there are five covariates that can predict the response, wait time. Since three of these covariates are associated with patient demographics, we hypothesize that there may exist social bias in the wait time of a patient, and explore this assumption via exploratory data analysis.
 
 ##Racial Bias
-# Side by side histograms of wait times by gender
+# non-black vs black
 ```{r}
 kelly$male
 ggplot(kelly, aes(x=nctdel)) +
+<<<<<<< HEAD
+  facet_wrap(~ black) +
+  geom_histogram(aes(y=..count../sum(..count..))) +
+  labs(x = "Average Wait Times in Minutes", y = "Density Estimate")
+```
+# non-hisp vs hisp
+```{r}
+ggplot(kelly, aes(x=nctdel)) +
+  facet_wrap(~ hisp) +
+=======
   facet_wrap(~ male) + 
+>>>>>>> 6bc9293e11dd025597fa547aec2ddb34c2e99ae0
   geom_histogram(aes(y=..count../sum(..count..))) +
   labs(x = "Average Wait Times in Minutes", y = "Density Estimate")
 ```
 
 ##Gender Bias
--talk about bias
-  -look for racial and gender bias
+# Side by side histograms of wait times by gender
+```{r}
+ggplot(kelly, aes(x=nctdel)) +
+  facet_wrap(~ male) +
+  geom_histogram(aes(y=..count../sum(..count..))) +
+  labs(x = "Average Wait Times in Minutes", y = "Density Estimate")
+```
   
 -compare the differences between who was rejected and who wasn't (fail)
 
@@ -76,8 +92,13 @@ In an effort to understand factors predictive of wait time, we could model the w
 hist(kelly$nctdel[kelly$nctdel!=0.0],breaks=40,freq=F) # dist of wait times (zero wait times removed)
 lines(seq(0,26),dpois(seq(0,26),1.46),type="p",col="red") # poisson model, arbitrary lambda
 ```
+
 Below are three potential approaches to alleviate this challenge:
 
+<<<<<<< HEAD
+In an effort to understand factors predictive of wait time, we could model the wait time for each patient as a Poisson distribution. However, after attempting to fit a Poisson distribution with $\lambda = 1.46$, we noticed that it did not capture the data robustly enough. Below are three potential approaches to alleviate this challenge:
+=======
+>>>>>>> 6bc9293e11dd025597fa547aec2ddb34c2e99ae0
 1. We plan to separate the model into bins, and to model each bin with a piecewise constant hazard model.
 
 2. We could avoid modeling the data and non-parametrically estimate it via a Kaplan-Meier estimate.
