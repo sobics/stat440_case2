@@ -56,31 +56,30 @@ After cleaning the dataset, there are five covariates that can predict the respo
 # non-black vs black
 ```{r}
 
-ggplot(kelly, aes(nctdel, group = black)) + geom_line()
-ggplot(kelly, aes(x=nctdel)) +
-  facet_wrap(~ black) +
-  geom_histogram(aes(y=..count../sum(..count..))) +
-  labs(x = "Average Wait Times in Minutes", y = "Density Estimate")
+ggplot(kelly, aes(nctdel, group = factor(black), fill = factor(black,labels=c("no", "yes"))),alpha=0.5, adjust=2) + geom_density() + theme_bw() + xlab("Wait Time") + ylab("Frequency of Wait Time") + labs(fill = "Black?") + ggtitle("Differences in Wait Time if Black")
+
+
+
+#ggplot(kelly, aes(x=nctdel)) +
+#  facet_wrap(~ black) +
+#  geom_histogram(aes(y=..count../sum(..count..))) +
+#  labs(x = "Average Wait Times in Minutes", y = "Density Estimate")
 ```
 # non-hisp vs hisp
 ```{r}
-ggplot(kelly, aes(x=nctdel)) +
-  facet_wrap(~ male) + 
-
-  geom_histogram(aes(y=..count../sum(..count..))) +
-  labs(x = "Average Wait Times in Minutes", y = "Density Estimate")
+ggplot(kelly, aes(nctdel, group = factor(hisp), fill = factor(hisp,labels=c("no", "yes"))),alpha=0.5, adjust=2) + geom_density() + theme_bw() + xlab("Wait Time") + ylab("Frequency of Wait Time") + labs(fill = "Hispanic?") + ggtitle("Differences in Wait Time if Hispanic")
 ```
 
 ##Gender Bias
-# Side by side histograms of wait times by gender
 ```{r}
-ggplot(kelly, aes(x=nctdel)) +
-  facet_wrap(~ male) +
-  geom_histogram(aes(y=..count../sum(..count..))) +
-  labs(x = "Average Wait Times in Minutes", y = "Density Estimate")
+ggplot(kelly, aes(nctdel, group = factor(male), fill = factor(male,labels=c("no", "yes"))),alpha=0.5, adjust=2) + geom_density() + theme_bw() + xlab("Wait Time") + ylab("Frequency of Wait Time") + labs(fill = "Male?") + + ggtitle("Differences in Wait Time if Male")
 ```
   
+#Demographic Differences for Those Who Fail to Receive Scans? 
 -compare the differences between who was rejected and who wasn't (fail)
+```{r}
+(cor(kelly$fail, kelly))
+```
 
 hist(kelly$count_sn,breaks=50) # dist of symptom counts
 
