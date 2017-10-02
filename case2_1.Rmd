@@ -66,6 +66,12 @@ hist(kelly$count_sn,breaks=50) # dist of symptom counts
 
 ```
 
+# Side by side histograms of wait times by gender
+```{r}
+ggplot(kelly, aes(x=nctdel)) +
+  facet_wrap(~ male) +
+  geom_histogram(aes(y=..count../sum(..count..)))
+```
 #Possible Approaches to the Data
 In an effort to understand factors predictive of wait time, we could model the wait time for each patient as a Poisson distribution. However, after attempting to fit a Poisson distribution with $\lambda = 1.46$, we noticed that it did not capture the data robustly enough. Below are three potential approaches to alleviate this challenge:
 
