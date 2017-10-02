@@ -59,32 +59,30 @@ After cleaning the dataset, there are five covariates that can predict the respo
   
 -compare the differences between who was rejected and who wasn't (fail)
 
+hist(kelly$count_sn,breaks=50) # dist of symptom counts
+
+#Possible Approaches to the Data
+In an effort to understand factors predictive of wait time, we could model the wait time for each patient as a Poisson distribution. However, after attempting to fit a Poisson distribution with $\lambda = 1.46$, we noticed that it did not capture the data robustly enough. 
 ```{r}
 hist(kelly$nctdel[kelly$nctdel!=0.0],breaks=40,freq=F) # dist of wait times (zero wait times removed)
 lines(seq(0,26),dpois(seq(0,26),1.46),type="p",col="red") # poisson model, arbitrary lambda
-hist(kelly$count_sn,breaks=50) # dist of symptom counts
-
 ```
 
-#Possible Approaches to the Data
-In an effort to understand factors predictive of wait time, we could model the wait time for each patient as a Poisson distribution. However, after attempting to fit a Poisson distribution with $\lambda = 1.46$, we noticed that it did not capture the data robustly enough. Below are three potential approaches to alleviate this challenge:
+Below are three potential approaches to alleviate this challenge:
 
-1. We plan to separate the model into bins, and to model each bin with a piecewise constant hazard.
+1. We plan to separate the model into bins, and to model each bin with a piecewise constant hazard model.
 
 2. We could avoid modeling the data and non-parametrically estimate it via a Kaplan-Meier estimate.
-
-3. We could also cluster the data to check to see whether or not people with similar characters have similar wait times from the waiting room to the ER.
-
-4. Decision trees(?)
-
-
-Notes from class
-
 #Kaplan Meier Estimate
-```{r}
+```{r echo = F}
 library(survival)
 d2 <- Surv(kelly$nctdel, kelly$fail) #creates a survival object #preprocessed version of the data
-km <- survfit(d2 ~ kelly$male)
+km <- survfit(d2 ~ kelly$male + kelly$black + kelly$hisp + kelly$count_sn)
 plot(km, col = c("red", "blue"))
 print(km)
 ```
+
+3. We could also cluster the data to check to see whether or not people with similar characters have similar wait times from the waiting room to the ER.
+
+
+Notes from class
