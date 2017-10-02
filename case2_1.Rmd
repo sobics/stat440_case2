@@ -76,3 +76,15 @@ In an effort to understand factors predictive of wait time, we could model the w
 3. We could also cluster the data to check to see whether or not people with similar characters have similar wait times from the waiting room to the ER.
 
 4. Decision trees(?)
+
+
+Notes from class
+
+#Kaplan Meier Estimate
+```{r}
+library(survival)
+d2 <- Surv(kelly$nctdel, kelly$fail) #creates a survival object #preprocessed version of the data
+km <- survfit(d2 ~ kelly$male)
+plot(km, col = c("red", "blue"))
+print(km)
+```
