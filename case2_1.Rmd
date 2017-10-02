@@ -55,8 +55,9 @@ After cleaning the dataset, there are five covariates that can predict the respo
 ##Racial Bias
 # Side by side histograms of wait times by gender
 ```{r}
+kelly$male
 ggplot(kelly, aes(x=nctdel)) +
-  facet_wrap(~ male) +
+  facet_wrap(~ male) + 
   geom_histogram(aes(y=..count../sum(..count..))) +
   labs(x = "Average Wait Times in Minutes", y = "Density Estimate")
 ```
@@ -76,8 +77,7 @@ hist(kelly$nctdel[kelly$nctdel!=0.0],breaks=40,freq=F) # dist of wait times (zer
 lines(seq(0,26),dpois(seq(0,26),1.46),type="p",col="red") # poisson model, arbitrary lambda
 ```
 Below are three potential approaches to alleviate this challenge:
-#Possible Approaches to the Data
-In an effort to understand factors predictive of wait time, we could model the wait time for each patient as a Poisson distribution. However, after attempting to fit a Poisson distribution with $\lambda = 1.46$, we noticed that it did not capture the data robustly enough. Below are three potential approaches to alleviate this challenge:
+
 1. We plan to separate the model into bins, and to model each bin with a piecewise constant hazard model.
 
 2. We could avoid modeling the data and non-parametrically estimate it via a Kaplan-Meier estimate.
