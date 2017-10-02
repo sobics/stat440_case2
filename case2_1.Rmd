@@ -92,5 +92,3 @@ print(km)
 
 3. We could also cluster the data to check to see whether or not people with similar characters have similar wait times from the waiting room to the ER.
 
-
-Notes from class
