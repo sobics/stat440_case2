@@ -1,6 +1,6 @@
 ---
 title: "Case 2 Part 1"
-author: "Sonia Xu"
+author: "Sonia Xu, Grant Goettel, Ian Hua"
 date: "September 29, 2017"
 output:
   pdf_document: default
@@ -54,6 +54,7 @@ After cleaning the dataset, there are five covariates that can predict the respo
 
 ##Racial Bias
 # non-black vs black
+There could potentially be bias here, but more analysis should be done. Non-blacks appear to have shorter wait times, but some non-blacks have extremely long wait times.
 ```{r}
 
 ggplot(kelly, aes(nctdel, group = factor(black), fill = factor(black,labels=c("no", "yes"))),alpha=0.5, adjust=2) + geom_density() + theme_bw() + xlab("Wait Time") + ylab("Frequency of Wait Time") + labs(fill = "Black?") + ggtitle("Differences in Wait Time if Black")
@@ -66,17 +67,19 @@ ggplot(kelly, aes(nctdel, group = factor(black), fill = factor(black,labels=c("n
 #  labs(x = "Average Wait Times in Minutes", y = "Density Estimate")
 ```
 # non-hisp vs hisp
+There could potentially be bias here, but the lack of sample size for hispanics appears to be an issue.
 ```{r}
 ggplot(kelly, aes(nctdel, group = factor(hisp), fill = factor(hisp,labels=c("no", "yes"))),alpha=0.5, adjust=2) + geom_density() + theme_bw() + xlab("Wait Time") + ylab("Frequency of Wait Time") + labs(fill = "Hispanic?") + ggtitle("Differences in Wait Time if Hispanic")
 ```
 
 ##Gender Bias
+There could potentially be bias here, but more analysis should be done. Females appear to have shorter wait times.
 ```{r}
-ggplot(kelly, aes(nctdel, group = factor(male), fill = factor(male,labels=c("no", "yes"))),alpha=0.5, adjust=2) + geom_density() + theme_bw() + xlab("Wait Time") + ylab("Frequency of Wait Time") + labs(fill = "Male?") + + ggtitle("Differences in Wait Time if Male")
+ggplot(kelly, aes(nctdel, group = factor(male), fill = factor(male,labels=c("no", "yes"))),alpha=0.5, adjust=2) + geom_density() + theme_bw() + xlab("Wait Time") + ylab("Frequency of Wait Time") + labs(fill = "Male?") + ggtitle("Differences in Wait Time if Male")
 ```
   
 #Demographic Differences for Those Who Fail to Receive Scans? 
--compare the differences between who was rejected and who wasn't (fail)
+From comparing the correlation between who was rejected and who weren't, there appears to be no significant difference.
 ```{r}
 (cor(kelly$fail, kelly))
 ```
@@ -89,7 +92,7 @@ In an effort to understand factors predictive of wait time, we could model the w
 hist(kelly$nctdel[kelly$nctdel!=0.0],breaks=40,freq=F) # dist of wait times (zero wait times removed)
 lines(seq(0,26),dpois(seq(0,26),1.46),type="p",col="red") # poisson model, arbitrary lambda
 ```
-Below are three potential approaches to alleviate this challenge:
+Below are a couple potential approaches to alleviate this challenge:
 
 1. We plan to separate the model into bins, and to model each bin with a piecewise constant hazard model.
 
@@ -103,5 +106,7 @@ plot(km, col = c("red", "blue"))
 print(km)
 ```
 
-3. We could also cluster the data to check to see whether or not people with similar characters have similar wait times from the waiting room to the ER.
+3. Similarly, we could apply a Cox proportional hazards model to this data. By assuming that the effects of the predictor variables upon survival are constant over time and additive in one scale, a Cox regression could provide better estimates of survival probabilities and cumulative hazard.
+
+4. We could also cluster the data to check to see whether or not people with similar characters have similar wait times from the waiting room to the ER.
 
