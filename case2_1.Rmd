@@ -125,3 +125,7 @@ plot(km, col = c("red", "blue", "green", "yellow", "purple", "pink", "orange", "
 
 4. We could also cluster the data to check to see whether or not people with similar characters have similar wait times from the waiting room to the ER.
 
+#Contributions
+Ian Hua: Potential Approaches, EDA Analysis
+Sonia Xu: EDA Analysis, Potential Approaches
+Grant Goettel: EDA Analysis, Potential Approaches
