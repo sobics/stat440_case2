@@ -28,9 +28,10 @@ sn2 = 0/1 indicator 2 main symptoms
 sn3 = 0/1 indicator 3 main symptoms 
 all4 = 0/1 indicator all 4 main symptoms
 --->
-#Case 2 Part 1: Preliminary Analysis
+#Preliminary Analysis
 This report explores the dataset provided from a study of time critical to neurological assessment for patients, so our group can form an initial understanding of demographic bias in regards to projected wait time. It covers how the data was cleaned, exploratory data analysis findings, and potential approaches to answer this challenge.
-```{r echo = F}
+```{r echo = F, warning = F, include = F}
+knitr::opts_chunk$set(fig.width=5, fig.height=3) 
 library(dplyr)
 library(magrittr)
 library(knitr)
@@ -53,8 +54,9 @@ kable(head(kelly))
 After cleaning the dataset, there are five covariates that can predict the response, wait time. Since three of these covariates are associated with patient demographics, we hypothesize that there may exist social bias in the wait time of a patient, and explore this assumption via exploratory data analysis.
 
 #Racial Bias
-#Black vs. Non-Black
+##Black vs. Non-Black
 There could potentially be bias here, but more analysis should be done. Non-blacks appear to have shorter wait times, but some non-blacks have extremely long wait times.
+
 ```{r echo = F}
 
 ggplot(kelly, aes(nctdel, group = factor(black), fill = factor(black,labels=c("no", "yes"))),alpha=0.5, adjust=2) + geom_density() + theme_bw() + xlab("Wait Time") + ylab("Frequency of Wait Time") + labs(fill = "Black?") + ggtitle("Differences in Wait Time if Black")
@@ -64,14 +66,18 @@ ggplot(kelly, aes(nctdel, group = factor(black), fill = factor(black,labels=c("n
 #  geom_histogram(aes(y=..count../sum(..count..))) +
 #  labs(x = "Average Wait Times in Minutes", y = "Density Estimate")
 ```
-#Hispanic vs. Non-Hispanic
+
+
+##Hispanic vs. Non-Hispanic
 There could potentially be bias here, but the lack of sample size for Hispanics appears to be an issue.
 ```{r echo = F}
 ggplot(kelly, aes(nctdel, group = factor(hisp), fill = factor(hisp,labels=c("no", "yes"))),alpha=0.5, adjust=2) + geom_density() + theme_bw() + xlab("Wait Time") + ylab("Frequency of Wait Time") + labs(fill = "Hispanic?") + ggtitle("Differences in Wait Time if Hispanic")
 ```
 
+
 #Gender Bias
 There could potentially be bias here, but more analysis should be done. Females appear to have shorter wait times.
+
 ```{r echo = F}
 ggplot(kelly, aes(nctdel, group = factor(male), fill = factor(male,labels=c("no", "yes"))),alpha=0.5, adjust=2) + geom_density() + theme_bw() + xlab("Wait Time") + ylab("Frequency of Wait Time") + labs(fill = "Male?") + ggtitle("Differences in Wait Time if Male")
 ```
@@ -79,37 +85,40 @@ ggplot(kelly, aes(nctdel, group = factor(male), fill = factor(male,labels=c("no"
 #Demographic Differences for Those Who Fail to Receive Scans? 
 From comparing the correlation between who was rejected and who wasn't, there appears to be no significant difference.
 ```{r echo = F}
-(cor(kelly$fail, kelly))
+kable(cor(kelly$fail, kelly))
 ```
 
 #Distribution of Main Symptoms
-Most observations showed only 1 symptom, so there is enough data to analyze the demographic bias between patients who solely exhibited one symptom. However, we need to remain cognisant of the small sample size for observations that exhibited 3 or 4 symptoms before we reach any conclusions (sample size of 21, 6 respectively).
-```{r echo = F}
+Most observations showed only one symptom, so there is enough data to analyze the demographic bias between patients who solely exhibited one symptom. However, we need to remain cognisant of the small sample size for observations that exhibited three or four symptoms before we reach any final conclusions (sample size of 21, 6 respectively).
+
+```{r warning = F, echo = F}
 #hist(kelly$count_sn,breaks=50, xlab = "Number of Main Symptoms") # dist of symptom counts
 ggplot(kelly, aes(x=count_sn)) + 
-  geom_histogram() +
+  geom_histogram(bins = 40) +
   theme_bw() +
   xlab(" Number of Main Symptoms") +
-  ylab("Count")
+  ylab("Count") + ggtitle("Histogram of Main Symptoms")
 ```
 
 #Possible Approaches to the Data
 In an effort to understand factors predictive of wait time, we could model the wait time for each patient as a Poisson distribution. However, after attempting to fit a Poisson distribution with $\lambda = 1.46$, we noticed that it did not capture the data robustly enough. The observed data seemed to have a higher peak than the Poisson model we tried to fit.
-```{r}
-hist(kelly$nctdel[kelly$nctdel!=0.0],breaks=40,freq=F) # dist of wait times (zero wait times removed)
+
+```{r echo = F}
+hist(kelly$nctdel[kelly$nctdel!=0.0],breaks=40,freq=F, main = "Histogram of Wait Times", xlab = "Wait Time") # dist of wait times (zero wait times removed)
 lines(seq(0,26),dpois(seq(0,26),1.46),type="p",col="red") # poisson model, arbitrary lambda
 ```
+
 Below are a couple potential approaches to alleviate this challenge:
 
 1. We plan to separate the model into bins, and to model each bin with a piecewise constant hazard model. The separated model might fit the data better, so from there we could get a more accurate picture of whether there are biases in the determination of wait time.
 
 2. We could non-parametrically estimate it via a Kaplan-Meier estimate. This would be used in combination with other techniques, as a non-parametric test would not be as powerful as a parametric one, but it would be able to point us in the right direction in terms of trends to look for. 
-```{r echo = F}
+```{r warning = F, echo = F, include = F}
 library(survival)
 d2 <- Surv(kelly$nctdel, kelly$fail) #creates a survival object #preprocessed version of the data
 km <- survfit(d2 ~ kelly$male + kelly$black + kelly$hisp + kelly$count_sn)
-plot(km, col = c("red", "blue"))
-print(km)
+plot(km, col = c("red", "blue", "green", "yellow", "purple", "pink", "orange", "brown"))
+#print(km)
 ```
 
 3. Similarly, we could apply a Cox proportional hazards model to this data. By assuming that the effects of the predictor variables upon survival are constant over time and additive in one scale, a Cox regression could provide better estimates of survival probabilities and cumulative hazard.
