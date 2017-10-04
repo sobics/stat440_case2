@@ -1,6 +1,6 @@
 ---
 title: "Case 2 Part 1"
-author: "Sonia Xu"
+author: "Sonia Xu, Grant Goettel, Ian Hua"
 date: "September 29, 2017"
 output:
   pdf_document: default
@@ -34,6 +34,7 @@ all4 = 0/1 indicator all 4 main symptoms
 library(dplyr)
 library(magrittr)
 library(knitr)
+library(ggplot2)
 ```
 
 #Read in Dataset
@@ -52,47 +53,67 @@ kable(head(kelly))
 After cleaning the dataset, there are five covariates that can predict the response, wait time. Since three of these covariates are associated with patient demographics, we hypothesize that there may exist social bias in the wait time of a patient, and explore this assumption via exploratory data analysis.
 
 ##Racial Bias
+# non-black vs black
+There could potentially be bias here, but more analysis should be done. Non-blacks appear to have shorter wait times, but some non-blacks have extremely long wait times.
+```{r}
+
+ggplot(kelly, aes(nctdel, group = factor(black), fill = factor(black,labels=c("no", "yes"))),alpha=0.5, adjust=2) + geom_density() + theme_bw() + xlab("Wait Time") + ylab("Frequency of Wait Time") + labs(fill = "Black?") + ggtitle("Differences in Wait Time if Black")
+
+
+
+#ggplot(kelly, aes(x=nctdel)) +
+#  facet_wrap(~ black) +
+#  geom_histogram(aes(y=..count../sum(..count..))) +
+#  labs(x = "Average Wait Times in Minutes", y = "Density Estimate")
+```
+# non-hisp vs hisp
+There could potentially be bias here, but the lack of sample size for hispanics appears to be an issue.
+```{r}
+ggplot(kelly, aes(nctdel, group = factor(hisp), fill = factor(hisp,labels=c("no", "yes"))),alpha=0.5, adjust=2) + geom_density() + theme_bw() + xlab("Wait Time") + ylab("Frequency of Wait Time") + labs(fill = "Hispanic?") + ggtitle("Differences in Wait Time if Hispanic")
+```
 
 ##Gender Bias
--talk about bias
-  -look for racial and gender bias
+There could potentially be bias here, but more analysis should be done. Females appear to have shorter wait times.
+```{r}
+ggplot(kelly, aes(nctdel, group = factor(male), fill = factor(male,labels=c("no", "yes"))),alpha=0.5, adjust=2) + geom_density() + theme_bw() + xlab("Wait Time") + ylab("Frequency of Wait Time") + labs(fill = "Male?") + ggtitle("Differences in Wait Time if Male")
+```
   
--compare the differences between who was rejected and who wasn't (fail)
+#Demographic Differences for Those Who Fail to Receive Scans? 
+From comparing the correlation between who was rejected and who weren't, there appears to be no significant difference.
+```{r}
+(cor(kelly$fail, kelly))
+```
 
+```{r}
+hist(kelly$count_sn,breaks=50, xlab = "Number of Main Symptoms") # dist of symptom counts
+ggplot(kelly, aes(x=count_sn)) + 
+  geom_histogram() +
+  theme_bw() +
+  xlab(" Number of Main Symptoms") +
+  ylab("Count")
+```
+
+#Possible Approaches to the Data
+In an effort to understand factors predictive of wait time, we could model the wait time for each patient as a Poisson distribution. However, after attempting to fit a Poisson distribution with $\lambda = 1.46$, we noticed that it did not capture the data robustly enough. The observed data seemed to have a higher peak than the Poisson model we tried to fit.
 ```{r}
 hist(kelly$nctdel[kelly$nctdel!=0.0],breaks=40,freq=F) # dist of wait times (zero wait times removed)
 lines(seq(0,26),dpois(seq(0,26),1.46),type="p",col="red") # poisson model, arbitrary lambda
-hist(kelly$count_sn,breaks=50) # dist of symptom counts
-
 ```
+Below are a couple potential approaches to alleviate this challenge:
 
-# Side by side histograms of wait times by gender
-```{r}
+1. We plan to separate the model into bins, and to model each bin with a piecewise constant hazard model. The separated model might fit the data better, so from there we could get a more accurate picture of whether there are biases in the determination of wait time.
 
-ggplot(kelly, aes(x=nctdel)) +
-  facet_wrap(~ male) +
-  geom_histogram(aes(y=..count../sum(..count..))) +
-  labs(x = "Wait Times in Minutes", y = "Density Estimate")
-```
-#Possible Approaches to the Data
-In an effort to understand predictive factors of wait time, we could model the wait time for each patient as a Poisson distribution. However, after attempting to fit a Poisson distribution with $\lambda = 1.46$, we noticed that it did not capture the data robustly enough. Below are three potential approaches to alleviate this challenge:
-
-1. We plan to separate the model into bins, and to model each bin with a piecewise constant hazard. Based on this information
-
-2. We could avoid modeling the data and non-parametrically estimate it via a Kaplan-Meier estimate.
-
-3. We could also cluster the data to check to see whether or not people with similar characteristics have similar wait times from the waiting room to the ER.
-
-4. Decision trees(?)
-
-
-Notes from class
-
+2. We could non-parametrically estimate it via a Kaplan-Meier estimate. This would be used in combination with other techniques, as a non-parametric test would not be as powerful as a parametric one, but it would be able to point us in the right direction in terms of trends to look for. 
 #Kaplan Meier Estimate
-```{r}
+```{r echo = F}
 library(survival)
 d2 <- Surv(kelly$nctdel, kelly$fail) #creates a survival object #preprocessed version of the data
-km <- survfit(d2 ~ kelly$male)
+km <- survfit(d2 ~ kelly$male + kelly$black + kelly$hisp + kelly$count_sn)
 plot(km, col = c("red", "blue"))
 print(km)
 ```
+
+3. Similarly, we could apply a Cox proportional hazards model to this data. By assuming that the effects of the predictor variables upon survival are constant over time and additive in one scale, a Cox regression could provide better estimates of survival probabilities and cumulative hazard.
+
+4. We could also cluster the data to check to see whether or not people with similar characters have similar wait times from the waiting room to the ER.
+
