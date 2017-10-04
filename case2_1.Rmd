@@ -28,17 +28,17 @@ sn2 = 0/1 indicator 2 main symptoms
 sn3 = 0/1 indicator 3 main symptoms 
 all4 = 0/1 indicator all 4 main symptoms
 --->
-
-#load libraries
-```{r}
+#Case 2 Part 1: Preliminary Analysis
+This report explores the dataset provided from a study of time critical to neurological assessment for patients, so our group can form an initial understanding of demographic bias in regards to projected wait time. It covers how the data was cleaned, exploratory data analysis findings, and potential approaches to answer this challenge.
+```{r echo = F}
 library(dplyr)
 library(magrittr)
 library(knitr)
 library(ggplot2)
 ```
 
-#Read in Dataset
-```{r}
+
+```{r include = F}
 kelly <- read.table("kellydat.txt", header = T)
 ```
 
@@ -52,40 +52,40 @@ kable(head(kelly))
 #Exploratory Data Analysis
 After cleaning the dataset, there are five covariates that can predict the response, wait time. Since three of these covariates are associated with patient demographics, we hypothesize that there may exist social bias in the wait time of a patient, and explore this assumption via exploratory data analysis.
 
-##Racial Bias
-# non-black vs black
+#Racial Bias
+#Black vs. Non-Black
 There could potentially be bias here, but more analysis should be done. Non-blacks appear to have shorter wait times, but some non-blacks have extremely long wait times.
-```{r}
+```{r echo = F}
 
 ggplot(kelly, aes(nctdel, group = factor(black), fill = factor(black,labels=c("no", "yes"))),alpha=0.5, adjust=2) + geom_density() + theme_bw() + xlab("Wait Time") + ylab("Frequency of Wait Time") + labs(fill = "Black?") + ggtitle("Differences in Wait Time if Black")
-
-
 
 #ggplot(kelly, aes(x=nctdel)) +
 #  facet_wrap(~ black) +
 #  geom_histogram(aes(y=..count../sum(..count..))) +
 #  labs(x = "Average Wait Times in Minutes", y = "Density Estimate")
 ```
-# non-hisp vs hisp
-There could potentially be bias here, but the lack of sample size for hispanics appears to be an issue.
-```{r}
+#Hispanic vs. Non-Hispanic
+There could potentially be bias here, but the lack of sample size for Hispanics appears to be an issue.
+```{r echo = F}
 ggplot(kelly, aes(nctdel, group = factor(hisp), fill = factor(hisp,labels=c("no", "yes"))),alpha=0.5, adjust=2) + geom_density() + theme_bw() + xlab("Wait Time") + ylab("Frequency of Wait Time") + labs(fill = "Hispanic?") + ggtitle("Differences in Wait Time if Hispanic")
 ```
 
-##Gender Bias
+#Gender Bias
 There could potentially be bias here, but more analysis should be done. Females appear to have shorter wait times.
-```{r}
+```{r echo = F}
 ggplot(kelly, aes(nctdel, group = factor(male), fill = factor(male,labels=c("no", "yes"))),alpha=0.5, adjust=2) + geom_density() + theme_bw() + xlab("Wait Time") + ylab("Frequency of Wait Time") + labs(fill = "Male?") + ggtitle("Differences in Wait Time if Male")
 ```
   
 #Demographic Differences for Those Who Fail to Receive Scans? 
-From comparing the correlation between who was rejected and who weren't, there appears to be no significant difference.
-```{r}
+From comparing the correlation between who was rejected and who wasn't, there appears to be no significant difference.
+```{r echo = F}
 (cor(kelly$fail, kelly))
 ```
 
-```{r}
-hist(kelly$count_sn,breaks=50, xlab = "Number of Main Symptoms") # dist of symptom counts
+#Distribution of Main Symptoms
+Most observations showed only 1 symptom, so there is enough data to analyze the demographic bias between patients who solely exhibited one symptom. However, we need to remain cognisant of the small sample size for observations that exhibited 3 or 4 symptoms before we reach any conclusions (sample size of 21, 6 respectively).
+```{r echo = F}
+#hist(kelly$count_sn,breaks=50, xlab = "Number of Main Symptoms") # dist of symptom counts
 ggplot(kelly, aes(x=count_sn)) + 
   geom_histogram() +
   theme_bw() +
@@ -104,7 +104,6 @@ Below are a couple potential approaches to alleviate this challenge:
 1. We plan to separate the model into bins, and to model each bin with a piecewise constant hazard model. The separated model might fit the data better, so from there we could get a more accurate picture of whether there are biases in the determination of wait time.
 
 2. We could non-parametrically estimate it via a Kaplan-Meier estimate. This would be used in combination with other techniques, as a non-parametric test would not be as powerful as a parametric one, but it would be able to point us in the right direction in terms of trends to look for. 
-#Kaplan Meier Estimate
 ```{r echo = F}
 library(survival)
 d2 <- Surv(kelly$nctdel, kelly$fail) #creates a survival object #preprocessed version of the data
