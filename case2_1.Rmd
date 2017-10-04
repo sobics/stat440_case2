@@ -68,19 +68,20 @@ hist(kelly$count_sn,breaks=50) # dist of symptom counts
 
 # Side by side histograms of wait times by gender
 ```{r}
+
 ggplot(kelly, aes(x=nctdel)) +
   facet_wrap(~ male) +
   geom_histogram(aes(y=..count../sum(..count..))) +
-  labs(x = "Average Wait Times in Minutes", y = "Density Estimate")
+  labs(x = "Wait Times in Minutes", y = "Density Estimate")
 ```
 #Possible Approaches to the Data
-In an effort to understand factors predictive of wait time, we could model the wait time for each patient as a Poisson distribution. However, after attempting to fit a Poisson distribution with $\lambda = 1.46$, we noticed that it did not capture the data robustly enough. Below are three potential approaches to alleviate this challenge:
+In an effort to understand predictive factors of wait time, we could model the wait time for each patient as a Poisson distribution. However, after attempting to fit a Poisson distribution with $\lambda = 1.46$, we noticed that it did not capture the data robustly enough. Below are three potential approaches to alleviate this challenge:
 
-1. We plan to separate the model into bins, and to model each bin with a piecewise constant hazard.
+1. We plan to separate the model into bins, and to model each bin with a piecewise constant hazard. Based on this information
 
 2. We could avoid modeling the data and non-parametrically estimate it via a Kaplan-Meier estimate.
 
-3. We could also cluster the data to check to see whether or not people with similar characters have similar wait times from the waiting room to the ER.
+3. We could also cluster the data to check to see whether or not people with similar characteristics have similar wait times from the waiting room to the ER.
 
 4. Decision trees(?)
 
