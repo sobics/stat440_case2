@@ -1,0 +1,73 @@
+---
+title: "Case 2 Part 2"
+author: "Sonia Xu, Grant Goettel, Ian Hua"
+date: "October 14, 2017"
+output: 
+  pdf_document: default
+  html_document: default
+---
+
+<!--- Week 2: Report #1 on the case study introduced the previous week is due by Wed class time.  These reports should be done using LaTeX or RMarkdown and submitted electronically. They should be clear, concise and contain plots and descriptions of the exploratory/descriptive analyses along with an analysis plan including relevant references.  The lecture time will be devoted to providing details on statistical approaches relevant to the case study, and will not have time for the teams to work together or be a detailed question/answer session (Monday’s class is devoted to such things).  It is expected that the teams will devote substantial time out of class.
+
+CASE STUDY 2: 
+
+BACKGROUND: Study of time to critical neurological assessment for patients with stroke-like symptoms who are admitted to the emergency room.  A possible predictor is number of major stroke symptoms reported, ranging from 0 to 4.  Treatment for acute stroke includes thrombolytic therapy, which can potentially improve neurological functioning for ischemic stroke patients if administered soon after symptom onset (within 3 hours).  Since treating patients quickly is critically important for their long-term prognosis, minimizing the times from symptom onset to emergency room (ED) arrival, from ED arrival to diagnosis, and from diagnosis to treatment is of paramount concern.
+
+INTEREST: Factors predictive of the time to critical neurological assessment following admission to the ED for n=335 patients with mild to moderate motor impairment.  The goal of the analysis is to perform inferences on the impact of clinical presentation, gender and race on time to neurological assessment.  Clinical presentation is measured as a count of reported major stroke symptoms, including headache, loss of motor skills or weakness, trouble talking or understanding, and vision problems.
+
+Variable key: 
+nctdel = min of neurologist time to assessment & CT scan from arrival at ER
+fail = 1 if got neurologist/CT scan & 0 otherwise
+male = 1 if male, 0=female
+black = 1 if black, 0=not black 
+hisp = 1 if hispanic, 0=not hispanic
+sn1 = 0/1 indicator 1 main symptom
+sn2 = 0/1 indicator 2 main symptoms
+sn3 = 0/1 indicator 3 main symptoms 
+all4 = 0/1 indicator all 4 main symptoms
+--->
+```{r}
+#load libraries and data
+
+library(survival)
+library(survminer)
+library(dplyr)
+library(cluster)
+library(randomForest)
+
+kelly <- read.table("kellydat.txt", header = T)
+kelly <- kelly %>% mutate(count_sn = sn1 + sn2*2 + sn3*3 + all4*4) %>% select(-c(sn1, sn2, sn3, all4))
+```
+
+#Exploring the Cox Proportional Hazards Model
+```{r}
+res.cox <- coxph(Surv(nctdel, fail) ~ male + black + hisp + count_sn, data =  kelly)
+
+summary(res.cox)
+```
+Looking at the Cox Model, none of the coefficients are significant in detecting the nctdel waiting time.
+
+#plot of the baseline survival function
+```{r}
+ggsurvplot(survfit(res.cox), color = "#2E9FDF",
+           ggtheme = theme_minimal()) + geom_vline(xintercept=2.5, linetype="dashed", color = "red", size=1)
+```
+
+Looking at the baseline survival function, the survival probability of patients drastically decrease after 2.5 minutes. 
+
+
+#Clustering the Data
+```{r}
+set.seed(3)
+kCluster <- kmeans(kelly[,-1], 3, nstart = 20)
+kCluster$cluster <- as.factor(kCluster$cluster)
+ggplot(kelly, aes(hisp, nctdel, color = kCluster$cluster)) + geom_point()
+```
+
+#Random Forest
+```{r}
+rf.randomForest <- randomForest(nctdel ~., kelly)
+varImpPlot(rf.randomForest)
+```
+Based on the variable importance plot, the most significant variables for determining nctdel wait time are in the order: fail, hispanic, count of symptoms, sex, and black.
+
