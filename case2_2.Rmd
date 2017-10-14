@@ -71,3 +71,11 @@ varImpPlot(rf.randomForest)
 ```
 Based on the variable importance plot, the most significant variables for determining nctdel wait time are in the order: fail, hispanic, count of symptoms, sex, and black.
 
+##Kaplan-Meier Estimate
+```{r warning = F, echo = F}
+library(survival)
+d2 <- Surv(kelly$nctdel, kelly$fail) #creates a survival object #preprocessed version of the data
+km <- survfit(d2 ~ kelly$male + kelly$black + kelly$hisp + kelly$count_sn)
+plot(km, col = c("red", "blue", "green", "yellow", "purple", "pink", "orange", "brown"))
+#print(km)
+```
