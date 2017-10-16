@@ -88,14 +88,69 @@ plot(km, col = c("red", "blue", "green", "yellow", "purple", "pink", "orange", "
 cox: prorportional hazards model
 glm: proportional log odds model
 
+#kernel regression
+```{r include = F}
+#creates a kernel distribution for each covariate
+#be careful of random samples--Big X can't have NAs
+kern_distribution <- function(x,knots = 4) {
+  ### s: #controls how wide the kernels are, s should be half the distance between two knots 
+  ### tau: decides where the breaks are based on the number of knots
+  ###knots: number of splits/peaks in the data
+  ##x and y are the data
+  
+  tau <- seq(min(x), max(x), length.out = knots)
+  s <- diff(tau)[1]/2
+  X <- matrix(0, nrow=length(x),ncol=knots)
+  for(i in 1:knots) {
+    X[,i] <- x * dnorm(x, tau[i], s)
+  }
+  return(X)
+}
+
+#smoothing out the graph by predicting values for the fitted data
+#same function as the kern distribution, but this time it is smoother
+smooth_graph <- function(x,knots = 4) {
+  tau <- seq(min(x), max(x), length.out = knots)
+  s <- diff(tau)[1]/2
+  x.predict <- seq(min(x), max(x), length.out=length(x))
+  X.predict <- matrix(0, nrow=length(x.predict),ncol = knots)
+  for(i in 1:knots) {
+    X.predict[,i] <- x.predict * dnorm(x.predict, tau[i], s)
+  }
+  return(X.predict)
+}
+
+```
+
+
+```{r}
+m <- glm(fail ~ kern_distribution(nctdel, knots = 2) + male + black + hisp + count_sn, data = kelly, family = "binomial")
+plot(kelly$nctdel,kelly$fail, col = "red", main = "nctdel vs. fail", ylab = "fail", xlab = "nctdel") #plots the true data
+lines(sort(kelly$nctdel), fitted(m)[order(kelly$fail)]) #shows how well the model fits the true data
+
 #for xs, time bin tells us how far the person went
--for the censored, they don't know what happened after the x bin (0/1)
+-for the censored, they dont know what happened after the x bin (0/1)
 -matrix for each individual
 
 ```{r}
-x <- array(0, dimc(time, total_bins))
-diag(X) <- 1
-return(data.frame(y,X))
+# fake data
+times <- 1 + c(rgeom(20, .3), rgeom(20,.05))
+total_bins <- max(times)
+
+censored <- rbinom(40, 1, .2)
+
+# example transformation
+# transformation function
+
+transformation <- function(time, censored, total_bins) {
+  y <- rep(0,time)
+  if(!censored) {
+    y[time] <- 1
+  }
+  # if you are doing kernel regression then you will calculate X differently here (using the kernels)
+  X <- array(0, dim=c(time, total_bins))
+  diag(X) <- 1
+  return(data.frame(y,X))
 }
 
 d <- transformation(times[1], censored[1], total_bins)
@@ -113,4 +168,55 @@ summary(m)
 #ask how to do kernel regression to smooth out empty bins
 
 
+
+
+######
+beta <- coef(m)
+hazard <- exp(beta)/(1+exp(beta))
+plot(1:total_bins, hazard, type='l')
+
+# this is pretty ugly. Let's smooth it out with kernel regression.
+
+# set up the kernels
+kernels <- 4
+tau <- seq(from=1, to=total_bins, length.out = kernels)
+sigma <- (tau[2]-tau[1])/2
+
+# we're going to pre-calculate a bunch of kernel weights
+# each row is one bin, the columns are the kernel weights for that bin
+kernel.weights <- matrix(dnorm(rep(1:80,kernels),rep(tau,each=80),sigma), ncol=kernels)
+kernel.weights <- kelly %>% select(-(fail))
+# now we'll create a new transform function
+kernel.transformation <- function(time, censored, total_bins, kernels, i) {
+  time = min(time, 1)
+  y <- rep(0,time)
+  if(!censored) {
+    y[time] <- 1
+  }
+  
+  # X has kernel weights instead of the bin indicators that it had before
+  X <- array(kernel.weights[i:time+i,],dim=c(time,kernels)) ###how to translate this line??
+  
+  return(data.frame(y,X))
+}
+
+d2 <- kernel.transformation(kelly$nctdel[1], as.logical(kelly$fail[1]), nrows(kelly), ncol(kernel.weights))
+
+for(i in 2:length(kelly$nctdel)) {
+  d2 <- rbind(d2, kernel.transformation(kelly$nctdel[i], as.logical(kelly$fail[i]), nrows(kelly), ncol(kelly)-1, i))
+}
+
+# fit a model
+
+m2 <- glm(y ~ 0 + ., data=d2, family="binomial")
+summary(m2)
+
+# make a smooth plot
+
+
+hazard.logodds <- predict(m2, newdata = data.frame(kernel.weights))
+hazard <- exp(hazard.logodds)/(1+exp(hazard.logodds))
+plot(1:total_bins, hazard, type='l')
+
+# you can choose different numbers of kernels or even use un-evenly spaced kernels to capture more detail early on where you have more data.
 ```
