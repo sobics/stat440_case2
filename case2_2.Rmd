@@ -79,3 +79,38 @@ km <- survfit(d2 ~ kelly$male + kelly$black + kelly$hisp + kelly$count_sn)
 plot(km, col = c("red", "blue", "green", "yellow", "purple", "pink", "orange", "brown"))
 #print(km)
 ```
+
+
+#Discrete Regression Approach
+
+#how to compare the two models to see which one performs better??
+
+cox: prorportional hazards model
+glm: proportional log odds model
+
+#for xs, time bin tells us how far the person went
+-for the censored, they don't know what happened after the x bin (0/1)
+-matrix for each individual
+
+```{r}
+x <- array(0, dimc(time, total_bins))
+diag(X) <- 1
+return(data.frame(y,X))
+}
+
+d <- transformation(times[1], censored[1], total_bins)
+
+
+for(i in 2:length(times)) {
+  d <- rbind(d, transformation(times[i], censored[i], total_bins))
+}
+
+m <- glm(y ~ 0 + ., data = d, family = "binomial")
+summary(m)
+
+#if estimates are negative, then you have TOOOOOOO MANYYYY BINS--beware, you can either 1. reduce # of bins or 2. use kernel regression
+
+#ask how to do kernel regression to smooth out empty bins
+
+
+```
