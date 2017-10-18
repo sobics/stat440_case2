@@ -1,7 +1,7 @@
 ---
 title: "Case 2 Part 2"
 author: "Sonia Xu, Grant Goettel, Ian Hua"
-date: "October 14, 2017"
+date: "October 18, 2017"
 output:
   pdf_document: default
   html_document: default
@@ -26,7 +26,7 @@ sn2 = 0/1 indicator 2 main symptoms
 sn3 = 0/1 indicator 3 main symptoms 
 all4 = 0/1 indicator all 4 main symptoms
 --->
-```{r include = F}
+```{r include = F, warning= F, message=F}
 #load libraries and data
 
 library(survival)
@@ -72,72 +72,45 @@ Multiple models and analyses were explored to find the best model that fit the n
 
 
 #Cox Proportional Hazards Model
-```{r}
+A Cox Proportional Hazards model was fit with nctdel as the response, and the features male, black, hispanic, and coun_sn as a factor (Appendix A for summary).
+```{r echo = F}
 res.cox <- coxph(Surv(nctdel, fail) ~ male + black + hisp + factor(count_sn), data =  kelly)
-
-summary(res.cox)
 ```
 Looking at the Cox Model, only one of the coefficients are significant in detecting the nctdel waiting time--if the number of symptoms = 4. Either the data is not informative or the model is not a good fit of the data.
 
-To assess the goodness of fit of the model, we check to see if the model fits the Cox Proportional Hazards Model Assumptions of no influential outliers, linearity, and homoscedascity of Schoenfeld residuals. The dataset does not satisfy the linearity assumption, so this implies that the Cox Proportional Hazard Model may not be the best model for the dataset (Appendix A).    
+To assess the goodness of fit of the model, we check to see if the model fits the Cox Proportional Hazards Model Assumptions of no influential outliers, linearity, and homoscedascity of Schoenfeld residuals. The dataset does not satisfy the linearity assumption, so this implies that the Cox Proportional Hazard Model may not be the best model for the dataset (Appendix B).    
 
 
 ##Kaplan-Meier Estimate
-```{r warning = F, echo = F}
-library(survival)
-d2 <- Surv(kelly$nctdel, kelly$fail) #creates a survival object #preprocessed version of the data
-
-# km for male/female, red=female, blue=male
-kmM <- survfit(d2 ~ kelly$male)
-plot(kmM, col = c("red","blue"))
-print(kmM)
-
-# km for black/non-black, red=nonblack, blue=black
-kmB <- survfit(d2 ~ kelly$black)
-plot(kmB, col = c("red","blue"))
-print(kmB)
-
-# km for hispanic/non-hispanic, red=nonhisp, blue=hisp
-kmH <- survfit(d2 ~ kelly$hisp)
-plot(kmH, col = c("red","blue"))
-print(kmH)
-
-# KM for count of symptoms, red=0 to blue=5
-kmCOS <- survfit(d2 ~ kelly$count_sn)
-plot(kmCOS, col = c("red","orange","yellow","green","blue"))
-print(kmCOS)
-```
-The Kaplan-Meier estimate can take into account the fail variable properly in the dataset. It is clear that sample size is an issue for some of categories but for the most part we can observe general relationships between categories in our dataset. It seems that females are treated slightly faster than males although not significantly. Non-blacks appear to be treated faster than blacks with a 95% CI for non-blacks between 1.33 and 1.62 while a 95% CI for blacks is between 1.68 and 2.08. This appears to be significant bias, however there appears to be no bias with regard to hispanics. Finally, by looking at the graph for the Kaplan-Meier estimate on the dataset based on count of symptoms, we observe that symptom count does appear to be a major factor in wait time, especially when all four symptoms are present. 
-
-The following is the Kaplan-Meier estimate for all subcategories present in the data set. Larger sample sizes would be useful.
-```{r}
-km <- survfit(d2 ~  kelly$male + kelly$black + kelly$hisp + kelly$count_sn)
-print(km)
-```
+The Kaplan-Meier estimate can take into account the fail variable properly in the dataset. It is clear that sample size is an issue for some of categories but for the most part we can observe general relationships between categories in our dataset. It seems that females are treated slightly faster than males although not significantly. Non-blacks appear to be treated faster than blacks with a 95% CI for non-blacks between 1.33 and 1.62 while a 95% CI for blacks is between 1.68 and 2.08. This appears to be significant bias, however there appears to be no bias with regard to hispanics. Finally, by looking at the graph for the Kaplan-Meier estimate on the dataset based on count of symptoms, we observe that symptom count does appear to be a major factor in wait time, especially when all four symptoms are present (Appendix D). 
 
 #Random Forest for Two Different Responses
 We built a random forest tree to identify the most significant features. In doing so, we realized that changing the response could change the significance ranking of features. 
 
 ##nctdel: Wait Time
-```{r}
+```{r echo = F, warning = F}
 rf.randomForest <- randomForest(nctdel ~., kelly)
 varImpPlot(rf.randomForest)
 ```
+
 Based on the variable importance plot, the most significant variables for determining nctdel wait time are in the order: fail, hispanic, count of symptoms, sex, and black.
+
+
 ##Failure
-```{r}
+```{r echo = F, warning= F}
 rf.randomForest <- randomForest(fail ~., kelly)
 varImpPlot(rf.randomForest)
 ```
+
 However, when changing the response to failure (0/1), the most significant predictors are nctdel, count_sn, and male. Being hispanic is less important.
 
 Originally, for the CPH model and KM model, we used nctdel as the response, and noticed goodness-of-fit issues. We decided to create a Kernel Regression model with failure as the response to explore the robustness of this new model.
 
 ##Kernel Regression with 13 Bins
-13 bins were calculated to fit the kernels. The bins are unevenly spaced because the data has a higher concentration of points for the feature nctdel between 0 and 2, even though its range is (0,26.25). 
+13 bins were calculated to fit the kernels. The bins are unevenly spaced because the data has a higher concentration of points for the feature nctdel between 0 and 2, even though its range is (0,26.25). The model has fail as the response, a kernel estimation of nctdel with 4 knots, and the features male, black, hispanic, and coun_sn. The bin levels are (-Inf,0], (0,0.3], (0.3,0.7], (0.7,1], (1,1.1], (1.1,1.3], (1.3,1.6], (1.6,1.9], (1.9,10], (10,13], (13,15], (17, Inf]. A summary of the model noted some significance for the feature nctdel (for the full summary, Appendix C).
 ```{r echo = F}
 # set up the kernels
-bin <- cut(kelly$nctdel, c(-Inf,seq(0,26,.3),Inf))
+#bin <- cut(kelly$nctdel, c(-Inf,seq(0,26,.3),Inf))
 bin <- cut(kelly$nctdel, c(-Inf,0,0.3,0.7,1,1.1,seq(1.3,2.05,0.3),10,13,15,17,Inf))
 #bins <- cut(kelly$nctdel, c(-Inf,0,0.5, 0.7, 1.3, 2.05,10,15,Inf)) #manually choose bins based on quantiles and my own knowledge
 levels(bin) <- as.character(seq(1:nlevels(bin)))
@@ -189,14 +162,16 @@ for(i in 1:length(kelly$nctdel)) {
 }
 ```
 
-```{r echo = F}
+```{r echo = F, warning=F}
 # fit a model
 
 m2 <- glm(y ~ 0 + ., data=data.frame(d2_full), family="binomial")
-summary(m2)
+#summary(m2)
 
 # make a smooth plot
+```
 
+```{r echo = F}
 X.pred <- kernel.weights[,-1]
 
 hazard.logodds <- predict(m2, newdata = data.frame(X.pred), type = "response")
@@ -206,16 +181,17 @@ plot(1:nlevels(bin), hazard, type='l')
 
 # you can choose different numbers of kernels or even use un-evenly spaced kernels to capture more detail early on where you have more data.
 ```
-Looking at the hazard plot, after bin 6 (), the survival log odds are significantly lower.
+Looking at the hazard plot, after bin 6 (1.1,1.3], the survival log odds are significantly lower.
+
 
 ##Model Checks
 To understand how well the model fits, we performed goodness of fit tests and a model check assumptions.
-```{r include = F}
+```{r echo = F}
 par(mfrow = c(2,2))
 plot(m2)
 ```
 Looking at the Residuals vs. Fitted Graph, the points do not exhibit a pattern. However, the points are not evenly distrbuted, so they are heteroscedastic. Similarly, with Residuals vs. Leverage, the points are not homoscedastically distributed. While this model better fits the data than previous models, this model can also be improved. 
-```{r}
+```{r echo = F}
 X.test <- kelly %>% select(male, black, hisp, count_sn)
 
 X.test <- data.frame(cbind(kern_distribution(kelly$nctdel), X.test))
@@ -223,15 +199,22 @@ X.test <- data.frame(cbind(kern_distribution(kelly$nctdel), X.test))
 
 
 kern.pred <- round(predict.glm(m2, newdata = data.frame(X.test), type = 'response'))
-mean(kern.pred != kelly$fail)
+m = mean(kern.pred != kelly$fail)
 ```
+Overall, the model fits the true dataset `r m*100`% of the time when predicting for failure over the entire dataset, which reaffirms the fact that the model can be improved. 
 
 #Conclusion
-Overall, the model fits the true dataset 58.8% of the time, which reaffirms the fact that the model can be improved. For next week, more model exploration and testing will be conducted to improve the model for the dataset.
+Overall, most of the models explored were average at best. The best model for the dataset currently is the Kernel Regression Model. For next week, more model exploration and testing will be conducted to improve the model fit.
 
 #Appendix
 
 ##A
+###CPH Model Summary
+```{r echo = F}
+summary(res.cox)
+```
+
+##B
 
 ###Schoenfeld Residuals
 ```{r echo = F}
@@ -239,12 +222,14 @@ fit.cox <- cox.zph(res.cox)
 ggcoxzph(fit.cox)
 ```
 From the graphical inspection, there exists a pattern (slight curve in tails) with time for the feature black. The assumption of proportional hazards appears to be supported for the covariates male, each factor of the symptoms, and hispanic.
+
 ###Test for Outliers
-```{r}
+```{r echo = F}
 ggcoxdiagnostics(res.cox, type = "dfbeta",
                  linear.predictions = FALSE, ggtheme = theme_bw())
 ```
 Most of the plots show no trends, so no points are significantly influential.
+
 ###Linearity
 ```{r echo = F}
 ggcoxfunctional(Surv(nctdel, fail) ~ count_sn+1 + log(count_sn+1) + sqrt(count_sn+1), data = kelly)
@@ -252,67 +237,45 @@ ggcoxfunctional(Surv(nctdel, fail) ~ count_sn+1 + log(count_sn+1) + sqrt(count_s
 The feature count_sn does not follow a linear trend, so it breaks the linearity assumption for a CPH Model.
 
 
-##Excess data--may be unnecessary
-#Discrete Regression Approach
+##C
 
-#how to compare the two models to see which one performs better??
-
-cox: prorportional hazards model
-glm: proportional log odds model
-
-
-```{r}
-m <- glm(fail ~ kern_distribution(nctdel, knots = 2) + male + black + hisp + count_sn, data = kelly, family = "binomial")
-plot(kelly$nctdel,kelly$fail, col = "red", main = "nctdel vs. fail", ylab = "fail", xlab = "nctdel") #plots the true data
-lines(sort(kelly$nctdel), fitted(m)[order(kelly$fail)]) #shows how well the model fits the true data
-
-#for xs, time bin tells us how far the person went
-#-for the censored, they dont know what happened after the x bin (0/1)
-#-matrix for each individual
+###Kernel Regression Summary
+```{r echo = F}
+summary(m2)
 ```
 
-```{r}
-# fake data
-times <- kelly$nctdel #1 + c(rgeom(20, .3), rgeom(20,.05))
-total_bins <- max(times)
+#D
 
-censored <- rbinom(40, 1, .2)
+###Kaplan Meier Estimate for SubCategories
+The following is the Kaplan-Meier estimate for all subcategories present in the data set. Larger sample sizes would be useful.
+```{r warning = F, echo = F}
+d2 <- Surv(kelly$nctdel, kelly$fail) #creates a survival object #preprocessed version of the data
 
-# example transformation
-# transformation function
+# km for male/female, red=female, blue=male
+kmM <- survfit(d2 ~ kelly$male)
+plot(kmM, col = c("red","blue"))
+print(kmM)
 
-transformation <- function(time, censored, total_bins, kernel.weights = bins) {
-  y <- rep(0,time)
-  if(!censored) {
-    y[time] <- 1
-  }
-  # if you are doing kernel regression then you will calculate X differently here (using the kernels)
-   X <- array(kernel.weights[1:time,],dim=c(time,kernels))
-  diag(X) <- 1
-  return(data.frame(y,X))
-}
+# km for black/non-black, red=nonblack, blue=black
+kmB <- survfit(d2 ~ kelly$black)
+plot(kmB, col = c("red","blue"))
+print(kmB)
 
-d <- transformation(times[1], as.logical(kelly$fail)[1], total_bins)
+# km for hispanic/non-hispanic, red=nonhisp, blue=hisp
+kmH <- survfit(d2 ~ kelly$hisp)
+plot(kmH, col = c("red","blue"))
+print(kmH)
 
+# KM for count of symptoms, red=0 to blue=5
+kmCOS <- survfit(d2 ~ kelly$count_sn)
+plot(kmCOS, col = c("red","orange","yellow","green","blue"))
+print(kmCOS)
 
-for(i in 2:length(times)) {
-  d <- rbind(d, transformation(times[i], as.logical(kelly$fail)[i], total_bins))
-}
-
-m <- glm(y ~ 0 + ., data = d, family = "binomial")
-summary(m)
-
-#if estimates are negative, then you have TOOOOOOO MANYYYY BINS--beware, you can either 1. reduce # of bins or 2. use kernel regression
-
-#ask how to do kernel regression to smooth out empty bins
-
-bins <- cut(kelly$nctdel, c(-Inf, 0.5, 1.3, 2.05,10,15,Inf))
-levels(bins) <- c("1","2","3","4","5", "6")
-kelly$bins = bins
-
-######
-beta <- coef(m)
-hazard <- exp(beta)/(1+exp(beta))
-plot(1:total_bins, hazard, type='l')
+km <- survfit(d2 ~  kelly$male + kelly$black + kelly$hisp + kelly$count_sn)
+print(km)
 ```
-This is pretty ugly. Let's smooth it out with kernel regression.
+
+#Contributions
+Grant:
+Ian: Kaplan Meier
+Sonia: Everything else
