@@ -58,11 +58,26 @@ summary(res.cox)
 ```
 Looking at the Cox Model, only one of the coefficients are significant in detecting the nctdel waiting time--if the number of symptoms = 4. Either the data is not informative or the model is not a good fit of the data.
 
-To assess the goodness of fit of the data, we check to see if the model fits the Cox Proportional Hazards 
-```{r}
+To assess the goodness of fit of the model, we check to see if the model fits the Cox Proportional Hazards Model Assumptions of no influential outliers, linearity, and homoscedascity of Schoenfeld residuals. The dataset does not satisfy the linearity assumption, so this implies that the Cox Proportional Hazard Model may not be the best model for the dataset.    
+##Schoenfeld Residuals
+```{r echo = F}
 fit.cox <- cox.zph(res.cox)
-plot(fit.cox)
+ggcoxzph(fit.cox)
 ```
+From the graphical inspection, there exists a pattern (slight curve in tails) with time for the feature black. The assumption of proportional hazards appears to be supported for the covariates male, each factor of the symptoms, and hispanic.
+##Test for Outliers
+```{r}
+ggcoxdiagnostics(res.cox, type = "dfbeta",
+                 linear.predictions = FALSE, ggtheme = theme_bw())
+```
+Most of the plots show no trends, so no points are significantly influential.
+##Linearity
+```{r echo = F}
+ggcoxfunctional(Surv(nctdel, fail) ~ count_sn+1 + log(count_sn+1) + sqrt(count_sn+1), data = kelly)
+```
+The feature count_sn does not follow a linear trend, so it breaks the linearity assumption for a CPH Model.
+
+
 
 #plot of the baseline survival function
 ```{r}
@@ -105,40 +120,6 @@ plot(km, col = c("red", "blue", "green", "yellow", "purple", "pink", "orange", "
 cox: prorportional hazards model
 glm: proportional log odds model
 
-#kernel regression
-```{r include = F}
-#creates a kernel distribution for each covariate
-#be careful of random samples--Big X can't have NAs
-kern_distribution <- function(x,knots = 4) {
-  ### s: #controls how wide the kernels are, s should be half the distance between two knots 
-  ### tau: decides where the breaks are based on the number of knots
-  ###knots: number of splits/peaks in the data
-  ##x and y are the data
-  
-  tau <- seq(min(x), max(x), length.out = knots)
-  s <- diff(tau)[1]/2
-  X <- matrix(0, nrow=length(x),ncol=knots)
-  for(i in 1:knots) {
-    X[,i] <- x * dnorm(x, tau[i], s)
-  }
-  return(X)
-}
-
-#smoothing out the graph by predicting values for the fitted data
-#same function as the kern distribution, but this time it is smoother
-smooth_graph <- function(x,knots = 4) {
-  tau <- seq(min(x), max(x), length.out = knots)
-  s <- diff(tau)[1]/2
-  x.predict <- seq(min(x), max(x), length.out=length(x))
-  X.predict <- matrix(0, nrow=length(x.predict),ncol = knots)
-  for(i in 1:knots) {
-    X.predict[,i] <- x.predict * dnorm(x.predict, tau[i], s)
-  }
-  return(X.predict)
-}
-
-```
-
 
 ```{r}
 m <- glm(fail ~ kern_distribution(nctdel, knots = 2) + male + black + hisp + count_sn, data = kelly, family = "binomial")
@@ -160,13 +141,13 @@ censored <- rbinom(40, 1, .2)
 # example transformation
 # transformation function
 
-transformation <- function(time, censored, total_bins) {
+transformation <- function(time, censored, total_bins, kernel.weights = bins) {
   y <- rep(0,time)
   if(!censored) {
     y[time] <- 1
   }
   # if you are doing kernel regression then you will calculate X differently here (using the kernels)
-  X <- array(0, dim=c(time, total_bins))
+   X <- array(kernel.weights[1:time,],dim=c(time,kernels))
   diag(X) <- 1
   return(data.frame(y,X))
 }
@@ -186,7 +167,8 @@ summary(m)
 #ask how to do kernel regression to smooth out empty bins
 
 bins <- cut(kelly$nctdel, c(-Inf, 0.5, 1.3, 2.05,10,15,Inf))
-
+levels(bins) <- c("1","2","3","4","5", "6")
+kelly$bins = bins
 
 ######
 beta <- coef(m)
@@ -197,47 +179,47 @@ This is pretty ugly. Let's smooth it out with kernel regression.
 
 ```{r}
 # set up the kernels
-kernels <- 4
-tau <- seq(from=1, to=total_bins, length.out = kernels)
-sigma <- (tau[2]-tau[1])/2
 
+bins <- cut(kelly$nctdel, c(-Inf, 0.5, 1.3, 2.05,10,15,Inf))
+levels(bins) <- c("1","2","3","4","5", "6")
+kelly$bins = bins
 # we're going to pre-calculate a bunch of kernel weights
 # each row is one bin, the columns are the kernel weights for that bin
 kernel.weights <- matrix(dnorm(rep(1:80,kernels),rep(tau,each=80),sigma), ncol=kernels)
-kernel.weights <- kelly %>% select(-(fail))
+kernel.weights <- as.matrix(kelly %>% group_by(bins) %>% summarise(mean(nctdel),mean(male), mean(black), mean(hisp), mean(count_sn)))
 # now we'll create a new transform function
-kernel.transformation <- function(time, censored, total_bins, kernels, i) {
-  time = min(time, 1)
+kernel.transformation <- function(time, censored, total_bins) {
   y <- rep(0,time)
   if(!censored) {
     y[time] <- 1
   }
   
   # X has kernel weights instead of the bin indicators that it had before
-  X <- array(kernel.weights[1:time,],dim=c(time,kernels)) ###how to translate this line??
+  X <- array(as.numeric(kernel.weights[1:time,-1]),dim=c(time,ncol(kernel.weights)-1)) ###how to translate this line??
   
   return(data.frame(y,X))
 }
 
-d2 <- kernel.transformation(times[1], censored[1], 80, kernels)
+d2 <- kernel.transformation(as.numeric(bins)[1], as.logical(kelly$fail[1]), nlevels(bins))
 d2 <- kernel.transformation(kelly$nctdel[1], as.logical(kelly$fail[1]), nrows(kelly), ncol(kernel.weights))
 
+d2_full <- NULL
 for(i in 2:length(kelly$nctdel)) {
-  print(i)
-  d2 <- rbind(d2, kernel.transformation(kelly$nctdel[i], as.logical(kelly$fail[i]), total_bins = nrow(kelly), kernels = ncol(kelly)-1, i))
+  d2_full <- rbind(d2_full,kernel.transformation(as.numeric(bins)[i], as.logical(kelly$fail[i]), nlevels(bins)))
 }
 ```
 
 ```{r}
 # fit a model
 
-m2 <- glm(y ~ 0 + ., data=d2, family="binomial")
+m2 <- glm(y ~ 0 + ., data=data.frame(d2_full), family="binomial")
 summary(m2)
 
 # make a smooth plot
 
+X.pred <- array(as.numeric(kernel.weights[,-1]),dim=c(6,ncol(kernel.weights)-1))
 
-hazard.logodds <- predict(m2, newdata = data.frame(kernel.weights))
+hazard.logodds <- predict(m2, newdata =X.pred)
 hazard <- exp(hazard.logodds)/(1+exp(hazard.logodds))
 plot(1:total_bins, hazard, type='l')
 
