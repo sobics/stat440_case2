@@ -80,7 +80,7 @@ ggcoxfunctional(Surv(nctdel, fail) ~ count_sn+1 + log(count_sn+1) + sqrt(count_s
 ```
 The feature count_sn does not follow a linear trend, so it breaks the linearity assumption for a CPH Model.
 
-
+##DO WE INCLUDE THIS THING BELOW??
 
 #plot of the baseline survival function
 ```{r}
@@ -205,7 +205,7 @@ Overall, the model fits the true dataset 82% of the time, which reaffirms the go
 
 
 
-##Excess data
+##Excess data--may be unnecessary
 #Discrete Regression Approach
 
 #how to compare the two models to see which one performs better??
