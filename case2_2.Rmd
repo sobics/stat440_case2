@@ -3,8 +3,8 @@ title: "Case 2 Part 2"
 author: "Sonia Xu, Grant Goettel, Ian Hua"
 date: "October 14, 2017"
 output:
-  html_document: default
   pdf_document: default
+  html_document: default
 ---
 
 <!--- Week 2: Report #1 on the case study introduced the previous week is due by Wed class time.  These reports should be done using LaTeX or RMarkdown and submitted electronically. They should be clear, concise and contain plots and descriptions of the exploratory/descriptive analyses along with an analysis plan including relevant references.  The lecture time will be devoted to providing details on statistical approaches relevant to the case study, and will not have time for the teams to work together or be a detailed question/answer session (Monday’s class is devoted to such things).  It is expected that the teams will devote substantial time out of class.
