@@ -2,9 +2,9 @@
 title: "Case 2 Part 2"
 author: "Sonia Xu, Grant Goettel, Ian Hua"
 date: "October 14, 2017"
-output: 
-  pdf_document: default
+output:
   html_document: default
+  pdf_document: default
 ---
 
 <!--- Week 2: Report #1 on the case study introduced the previous week is due by Wed class time.  These reports should be done using LaTeX or RMarkdown and submitted electronically. They should be clear, concise and contain plots and descriptions of the exploratory/descriptive analyses along with an analysis plan including relevant references.  The lecture time will be devoted to providing details on statistical approaches relevant to the case study, and will not have time for the teams to work together or be a detailed question/answer session (Monday’s class is devoted to such things).  It is expected that the teams will devote substantial time out of class.
@@ -92,11 +92,34 @@ Based on the variable importance plot, the most significant variables for determ
 ```{r warning = F, echo = F}
 library(survival)
 d2 <- Surv(kelly$nctdel, kelly$fail) #creates a survival object #preprocessed version of the data
-km <- survfit(d2 ~ kelly$male + kelly$black + kelly$hisp + kelly$count_sn)
-plot(km, col = c("red", "blue", "green", "yellow", "purple", "pink", "orange", "brown"))
-#print(km)
-```
 
+# km for male/female, red=female, blue=male
+kmM <- survfit(d2 ~ kelly$male)
+plot(kmM, col = c("red","blue"))
+print(kmM)
+
+# km for black/non-black, red=nonblack, blue=black
+kmB <- survfit(d2 ~ kelly$black)
+plot(kmB, col = c("red","blue"))
+print(kmB)
+
+# km for hispanic/non-hispanic, red=nonhisp, blue=hisp
+kmH <- survfit(d2 ~ kelly$hisp)
+plot(kmH, col = c("red","blue"))
+print(kmH)
+
+# KM for count of symptoms, red=0 to blue=5
+kmCOS <- survfit(d2 ~ kelly$count_sn)
+plot(kmCOS, col = c("red","orange","yellow","green","blue"))
+print(kmCOS)
+```
+The Kaplan-Meier estimate can take into account the fail variable properly in the dataset. It is clear that sample size is an issue for some of categories but for the most part we can observe general relationships between categories in our dataset. It seems that females are treated slightly faster than males although not significant. Non-blacks appear to be treated faster than blacks with a 95% CI for non-blacks between 1.33 and 1.62 while a 95% CI for blacks is between 1.68 and 2.08. This appears to be significant bias, however there appears to be no bias with regard to hispanics. Finally, by looking at the graph for the Kaplan-Meier estimate on the dataset based on count of symptoms, we observe that symptom count does appear to be a major factor in wait time, especially when all four symptoms are present. 
+
+The following is the Kaplan-Meier estimate for all subcategories present in the data set. Larger sample sizes would be useful.
+```{r}
+km <- survfit(d2 ~  kelly$male + kelly$black + kelly$hisp + kelly$count_sn)
+print(km)
+```
 
 #Discrete Regression Approach
 
