@@ -107,7 +107,7 @@ However, when changing the response to failure (0/1), the most significant predi
 Originally, for the CPH model and KM model, we used nctdel as the response, and noticed goodness-of-fit issues. We decided to create a Kernel Regression model with failure as the response to explore the robustness of this new model.
 
 ##Kernel Regression with 13 Bins
-13 bins were calculated to fit the kernels. The bins are unevenly spaced because the data has a higher concentration of points for the feature nctdel between 0 and 2, even though its range is (0,26.25). The model has fail as the response, a kernel estimation of nctdel with 4 knots, and the features male, black, hispanic, and coun_sn. The bin levels are (-Inf,0], (0,0.3], (0.3,0.7], (0.7,1], (1,1.1], (1.1,1.3], (1.3,1.6], (1.6,1.9], (1.9,10], (10,13], (13,15], (17, Inf]. A summary of the model noted some significance for the feature nctdel (for the full summary, Appendix C).
+13 bins were calculated to fit the kernels. The bins are unevenly spaced because the data has a higher concentration of points for the feature nctdel between 0 and 2, even though its range is (0,26.25). The model has fail as the response, a kernel estimation of nctdel with 4 knots, and the features male, black, hispanic, and count_sn. The bin levels are (-Inf,0], (0,0.3], (0.3,0.7], (0.7,1], (1,1.1], (1.1,1.3], (1.3,1.6], (1.6,1.9], (1.9,10], (10,13], (13,15], (17, Inf]. A summary of the model noted some significance for the feature nctdel (for the full summary, Appendix C).
 ```{r echo = F}
 # set up the kernels
 #bin <- cut(kelly$nctdel, c(-Inf,seq(0,26,.3),Inf))
