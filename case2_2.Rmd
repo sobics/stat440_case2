@@ -129,8 +129,9 @@ plot(kelly$nctdel,kelly$fail, col = "red", main = "nctdel vs. fail", ylab = "fai
 lines(sort(kelly$nctdel), fitted(m)[order(kelly$fail)]) #shows how well the model fits the true data
 
 #for xs, time bin tells us how far the person went
--for the censored, they dont know what happened after the x bin (0/1)
--matrix for each individual
+#-for the censored, they dont know what happened after the x bin (0/1)
+#-matrix for each individual
+```
 
 ```{r}
 # fake data
@@ -157,7 +158,7 @@ d <- transformation(times[1], as.logical(kelly$fail)[1], total_bins)
 
 
 for(i in 2:length(times)) {
-  d <- rbind(d, transformation(times[i], as.logical(kelly$fail)[i]), total_bins)
+  d <- rbind(d, transformation(times[i], as.logical(kelly$fail)[i], total_bins))
 }
 
 m <- glm(y ~ 0 + ., data = d, family = "binomial")
@@ -174,9 +175,10 @@ bins <- cut(kelly$nctdel, c(-Inf, 0.5, 1.3, 2.05,10,15,Inf))
 beta <- coef(m)
 hazard <- exp(beta)/(1+exp(beta))
 plot(1:total_bins, hazard, type='l')
+```
+This is pretty ugly. Let's smooth it out with kernel regression.
 
-# this is pretty ugly. Let's smooth it out with kernel regression.
-
+```{r}
 # set up the kernels
 kernels <- 4
 tau <- seq(from=1, to=total_bins, length.out = kernels)
@@ -207,7 +209,9 @@ for(i in 2:length(kelly$nctdel)) {
   print(i)
   d2 <- rbind(d2, kernel.transformation(kelly$nctdel[i], as.logical(kelly$fail[i]), total_bins = nrow(kelly), kernels = ncol(kelly)-1, i))
 }
+```
 
+```{r}
 # fit a model
 
 m2 <- glm(y ~ 0 + ., data=d2, family="binomial")
