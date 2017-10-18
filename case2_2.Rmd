@@ -34,6 +34,7 @@ library(survminer)
 library(dplyr)
 library(cluster)
 library(randomForest)
+library(ResourceSelection)
 
 kelly <- read.table("kellydat.txt", header = T)
 kelly <- kelly %>% mutate(count_sn = sn1 + sn2*2 + sn3*3 + all4*4) %>% select(-c(sn1, sn2, sn3, all4))
@@ -199,11 +200,11 @@ hazard <- exp(beta)/(1+exp(beta))
 plot(1:total_bins, hazard, type='l')
 ```
 This is pretty ugly. Let's smooth it out with kernel regression.
-##Kernel Regression
+##Kernel Regression with 26 Bins
 ```{r}
 # set up the kernels
 bins <- cut(kelly$nctdel, c(-Inf,seq(0,2.05,0.1),10,13,15,17,Inf))
-bins <- cut(kelly$nctdel, c(-Inf,0,0.5, 0.7, 1.3, 2.05,10,15,Inf)) #manually choose bins based on quantiles and my own knowledge
+#bins <- cut(kelly$nctdel, c(-Inf,0,0.5, 0.7, 1.3, 2.05,10,15,Inf)) #manually choose bins based on quantiles and my own knowledge
 levels(bins) <- as.character(seq(1:nlevels(bins)))
 kelly$bins = bins
 # we're going to pre-calculate a bunch of kernel weights
@@ -247,10 +248,17 @@ plot(1:nlevels(bins), hazard, type='l')
 # you can choose different numbers of kernels or even use un-evenly spaced kernels to capture more detail early on where you have more data.
 ```
 
-##Goodness of Fit
+##Goodness of Fit: 
+#this doesn't work
+```{r include = F}
+hoslem.test(kelly$fail, round(fitted(m2)))
+```
+
 ```{r}
 X.test <- array(as.matrix(kelly %>% select(nctdel, male, black, hisp, count_sn)), dim = c(nrow(kelly), ncol(kernel.weights)-1))
 
 kern.pred <- round(predict.glm(m2, newdata = data.frame(X.test), type = 'response'))
 mean(kern.pred != kelly$fail)
 ```
+
+Overall, the model fits the true dataset 82% of the time, which reaffirms the goodness-of-fit of the model.
