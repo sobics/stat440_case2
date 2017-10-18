@@ -40,7 +40,7 @@ kelly <- kelly %>% mutate(count_sn = sn1 + sn2*2 + sn3*3 + all4*4) %>%
   select(-c(sn1, sn2, sn3, all4)) %>%
   mutate(log.nctdel = log(nctdel+1))
 ```
-We realized in our previous report that we did not log the response variable nctdel.
+We realized in our previous report that we did not log the response variable nctdel. We wanted to explore whether that would improve our models or not, so we do.
 
 
 #Exploring the Cox Proportional Hazards Model
@@ -72,7 +72,6 @@ ggplot(kelly, aes(hisp, log.nctdel, color = kCluster$cluster)) + geom_point()
 ```{r}
 rf.randomForest <- randomForest(log.nctdel ~ fail + hisp + count_sn + male + black, kelly)
 varImpPlot(rf.randomForest)
-summary(rf.randomForest)
 ```
 Based on the variable importance plot, the most significant variables for determining nctdel wait time are in the order: fail, hispanic, count of symptoms, sex, and black.
 
@@ -101,7 +100,7 @@ glm: proportional log odds model
 x <- array(0, dimc(time, total_bins))
 diag(X) <- 1
 return(data.frame(y,X))
-}
+
 
 d <- transformation(times[1], censored[1], total_bins)
 
