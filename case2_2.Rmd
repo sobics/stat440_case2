@@ -36,12 +36,16 @@ library(cluster)
 library(randomForest)
 
 kelly <- read.table("kellydat.txt", header = T)
-kelly <- kelly %>% mutate(count_sn = sn1 + sn2*2 + sn3*3 + all4*4) %>% select(-c(sn1, sn2, sn3, all4))
+kelly <- kelly %>% mutate(count_sn = sn1 + sn2*2 + sn3*3 + all4*4) %>% 
+  select(-c(sn1, sn2, sn3, all4)) %>%
+  mutate(log.nctdel = log(nctdel+1))
 ```
+We realized in our previous report that we did not log the response variable nctdel.
+
 
 #Exploring the Cox Proportional Hazards Model
 ```{r}
-res.cox <- coxph(Surv(nctdel, fail) ~ male + black + hisp + count_sn, data =  kelly)
+res.cox <- coxph(Surv(log.nctdel, fail) ~ male + black + hisp + count_sn, data =  kelly)
 
 summary(res.cox)
 ```
@@ -61,13 +65,14 @@ Looking at the baseline survival function, the survival probability of patients 
 set.seed(3)
 kCluster <- kmeans(kelly[,-1], 3, nstart = 20)
 kCluster$cluster <- as.factor(kCluster$cluster)
-ggplot(kelly, aes(hisp, nctdel, color = kCluster$cluster)) + geom_point()
+ggplot(kelly, aes(hisp, log.nctdel, color = kCluster$cluster)) + geom_point()
 ```
 
 #Random Forest
 ```{r}
-rf.randomForest <- randomForest(nctdel ~., kelly)
+rf.randomForest <- randomForest(log.nctdel ~ fail + hisp + count_sn + male + black, kelly)
 varImpPlot(rf.randomForest)
+summary(rf.randomForest)
 ```
 Based on the variable importance plot, the most significant variables for determining nctdel wait time are in the order: fail, hispanic, count of symptoms, sex, and black.
 
@@ -111,6 +116,4 @@ summary(m)
 #if estimates are negative, then you have TOOOOOOO MANYYYY BINS--beware, you can either 1. reduce # of bins or 2. use kernel regression
 
 #ask how to do kernel regression to smooth out empty bins
-
-
 ```
