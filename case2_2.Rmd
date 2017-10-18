@@ -26,7 +26,7 @@ sn2 = 0/1 indicator 2 main symptoms
 sn3 = 0/1 indicator 3 main symptoms 
 all4 = 0/1 indicator all 4 main symptoms
 --->
-```{r}
+```{r include = F}
 #load libraries and data
 
 library(survival)
@@ -38,14 +38,31 @@ library(randomForest)
 kelly <- read.table("kellydat.txt", header = T)
 kelly <- kelly %>% mutate(count_sn = sn1 + sn2*2 + sn3*3 + all4*4) %>% select(-c(sn1, sn2, sn3, all4))
 ```
+#Overview
+
+Multiple models and analyses were explored to find the best model that fit the neurological assessment data. Methods explored included:
+
+1. Cox Proportional Hazards Model
+
+2. K-Means Clustering
+
+3. Random Forest
+
+4. Kernel Regression
 
 #Exploring the Cox Proportional Hazards Model
 ```{r}
-res.cox <- coxph(Surv(nctdel, fail) ~ male + black + hisp + count_sn, data =  kelly)
+res.cox <- coxph(Surv(nctdel, fail) ~ male + black + hisp + factor(count_sn), data =  kelly)
 
 summary(res.cox)
 ```
-Looking at the Cox Model, none of the coefficients are significant in detecting the nctdel waiting time.
+Looking at the Cox Model, only one of the coefficients are significant in detecting the nctdel waiting time--if the number of symptoms = 4. Either the data is not informative or the model is not a good fit of the data.
+
+To assess the goodness of fit of the data, we check to see if the model fits the Cox Proportional Hazards 
+```{r}
+fit.cox <- cox.zph(res.cox)
+plot(fit.cox)
+```
 
 #plot of the baseline survival function
 ```{r}
