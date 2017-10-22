@@ -5,6 +5,20 @@ date: "October 22, 2017"
 output: html_document
 ---
 
+```{r echo = F, warning = F, include = F}
+knitr::opts_chunk$set(fig.width=5, fig.height=3) 
+library(dplyr)
+library(magrittr)
+library(knitr)
+library(ggplot2)
+```
+
+
+```{r include = F}
+kelly <- read.table("kellydat.txt", header = T)
+kelly <- kelly %>% mutate(count_sn = sn1 + sn2*2 + sn3*3 + all4*4) %>% select(-c(sn1, sn2, sn3, all4))
+```
+
 #Introduction
 ```{r}
 
@@ -16,8 +30,9 @@ output: html_document
 ```
 
 #Dataset
-```{r}
-```
+The data set contained information about the amount of time elapsed from arrival at the ER to the assessment, and whether or not the patient received a CT scan. It also contained data about whether each patient was male or female, whether they were black or hispanic or not, and the amount of major symptoms of a stroke they had upon arrival (out of 4 main symptoms). Rather than have four separate indicator variables showing whether they had 1, 2, 3, or 4 symptoms, we created a single numerical variable containing the amount of symptoms.
+
+
 
 #Final Model
 ```{r}
