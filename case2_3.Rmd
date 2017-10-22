@@ -9,7 +9,7 @@ output: html_document
 INTEREST: Factors predictive of the time to critical neurological assessment following admission to the ED for n=335 patients with mild to moderate motor impairment.  The goal of the analysis is to perform inferences on the impact of clinical presentation, gender and race on time to neurological assessment.  Clinical presentation is measured as a count of reported major stroke symptoms, including headache, loss of motor skills or weakness, trouble talking or understanding, and vision problems.
 -->
 #Introduction
-The following data is from a study of time to critical neurological assessment for patients with stroke-like symptoms who were admitted to the emergency room. The purpose of the analysis is to perform inferences on the impact of clinical presentation (reported number of makor stroke symptoms), gender, and race on time to neurological asessment. This paper fits a model that identifies the differences in wait time to neurological assessment based on these features of interest. ##FINAL MODEL SENTENCE 
+The following data is from a study of time to critical neurological assessment for patients with stroke-like symptoms who were admitted to the emergency room. The purpose of the analysis is to perform inferences on the impact of clinical presentation (reported number of makor stroke symptoms), gender, and race on time to neurological asessment. This paper fits a model that identifies the differences in wait time to neurological assessment based on these features of interest. A final model of kernel regression with a response of fail, continuous feature of nctdel estimated via kernel regression, and binary features of black, hispanic, male, number of symptoms.
 
 
 #Methodology
