@@ -124,7 +124,6 @@ X.test <- kelly %>% select(male, black, hisp, count_sn)
 X.test <- data.frame(cbind(kern_distribution(kelly$nctdel), X.test))
 
 
-
 kern.pred <- round(predict.glm(m2, newdata = data.frame(X.test), type = 'response'))
 m = mean(kern.pred != kelly$fail)
 ```
@@ -132,6 +131,14 @@ Overall, the model fits the true dataset `r m*100`% of the time when predicting 
 
 
 ##Discussion
-```{r}
-```
+
+##Gender
+
+##Race
+
+##Symptoms
+
+
+#Recommendations
+
 
