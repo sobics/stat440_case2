@@ -1,14 +1,16 @@
 ---
-title: "Case 2 Part 2"
+title: "Case 2 Part 1"
 author: "Sonia Xu, Grant Goettel, Ian Hua"
-date: "October 14, 2017"
-output: 
+date: "September 29, 2017"
+output:
   pdf_document: default
   html_document: default
 ---
 
-<!--- Week 2: Report #1 on the case study introduced the previous week is due by Wed class time.  These reports should be done using LaTeX or RMarkdown and submitted electronically. They should be clear, concise and contain plots and descriptions of the exploratory/descriptive analyses along with an analysis plan including relevant references.  The lecture time will be devoted to providing details on statistical approaches relevant to the case study, and will not have time for the teams to work together or be a detailed question/answer session (Monday’s class is devoted to such things).  It is expected that the teams will devote substantial time out of class.
+<!--Week 1: Case study introduced in detail in the Wed lecture including questions from the students, and some relevant background on how the data were collected, the scientific focus, common ways to analyze the data, etc.  Students are expected to download the data, conduct exploratory/descriptive analyses of the data, clean the data (as needed) and outline several possible approaches for analyzing the data to address the scientific goals of the study by the next week’s lecture (at which point a write-up describing the results from the initial analyses and the different potential approaches to analysis) is due.  These interim reports will be graded, and should include a short description of the roles of each of the “authors” (team members) in the work.  -->
 
+
+<!---
 CASE STUDY 2: 
 
 BACKGROUND: Study of time to critical neurological assessment for patients with stroke-like symptoms who are admitted to the emergency room.  A possible predictor is number of major stroke symptoms reported, ranging from 0 to 4.  Treatment for acute stroke includes thrombolytic therapy, which can potentially improve neurological functioning for ischemic stroke patients if administered soon after symptom onset (within 3 hours).  Since treating patients quickly is critically important for their long-term prognosis, minimizing the times from symptom onset to emergency room (ED) arrival, from ED arrival to diagnosis, and from diagnosis to treatment is of paramount concern.
@@ -26,9 +28,9 @@ sn2 = 0/1 indicator 2 main symptoms
 sn3 = 0/1 indicator 3 main symptoms 
 all4 = 0/1 indicator all 4 main symptoms
 --->
-```{r}
-#load libraries and data
 
+#load libraries and data
+```{r}
 library(survival)
 library(survminer)
 library(dplyr)
@@ -36,83 +38,41 @@ library(cluster)
 library(randomForest)
 
 kelly <- read.table("kellydat.txt", header = T)
-kelly <- kelly %>% mutate(count_sn = sn1 + sn2*2 + sn3*3 + all4*4) %>% 
-  select(-c(sn1, sn2, sn3, all4)) %>%
-  mutate(log.nctdel = log(nctdel+1))
+kelly <- kelly %>% mutate(count_sn = sn1 + sn2*2 + sn3*3 + all4*4) %>% select(-c(sn1, sn2, sn3, all4))
 ```
-We realized in our previous report that we did not log the response variable nctdel. We wanted to explore whether that would improve our models or not, so we do.
 
+#Overview
+Multiple models and analyses were explored to find the best model that fit the neurological assessment data. Methods explored included:
+
+Cox Proportional Hazards Model
+
+K-Means Clustering
+
+Random Forest
+
+Kernel Regression
 
 #Exploring the Cox Proportional Hazards Model
 ```{r}
-res.cox <- coxph(Surv(log.nctdel, fail) ~ male + black + hisp + count_sn, data =  kelly)
-
+res.cox <- coxph(Surv(nctdel, fail) ~ male + black + hisp + factor(count_sn), data =  kelly)
 summary(res.cox)
 ```
-Looking at the Cox Model, none of the coefficients are significant in detecting the nctdel waiting time.
+Looking at the Cox Model, only one of the coefficients are significant in detecting the nctdel waiting time--if the number of symptoms = 4. Either the data is not informative or the model is not a good fit of the data.
 
-#plot of the baseline survival function
+To assess the goodness of fit of the data, we check to see if the model fits the Cox Proportional Hazards
 ```{r}
-ggsurvplot(survfit(res.cox), color = "#2E9FDF",
-           ggtheme = theme_minimal()) + geom_vline(xintercept=2.5, linetype="dashed", color = "red", size=1)
-```
-
-Looking at the baseline survival function, the survival probability of patients drastically decrease after 2.5 minutes. 
-
-
-#Clustering the Data
-```{r}
-set.seed(3)
-kCluster <- kmeans(kelly[,-1], 3, nstart = 20)
-kCluster$cluster <- as.factor(kCluster$cluster)
-ggplot(kelly, aes(hisp, log.nctdel, color = kCluster$cluster)) + geom_point()
-```
-
-#Random Forest
-```{r}
-rf.randomForest <- randomForest(log.nctdel ~ fail + hisp + count_sn + male + black, kelly)
-varImpPlot(rf.randomForest)
-```
-Based on the variable importance plot, the most significant variables for determining nctdel wait time are in the order: fail, hispanic, count of symptoms, sex, and black.
-
-##Kaplan-Meier Estimate
-```{r warning = F, echo = F}
-library(survival)
-d2 <- Surv(kelly$nctdel, kelly$fail) #creates a survival object #preprocessed version of the data
-km <- survfit(d2 ~ kelly$male + kelly$black + kelly$hisp + kelly$count_sn)
-plot(km, col = c("red", "blue", "green", "yellow", "purple", "pink", "orange", "brown"))
-#print(km)
+fit.cox <- cox.zph(res.cox)
+plot(fit.cox)
 ```
 
 
-#Discrete Regression Approach
-
-#how to compare the two models to see which one performs better??
-
-cox: prorportional hazards model
-glm: proportional log odds model
-
-#for xs, time bin tells us how far the person went
--for the censored, they don't know what happened after the x bin (0/1)
--matrix for each individual
-
-```{r}
-x <- array(0, dimc(time, total_bins))
-diag(X) <- 1
-return(data.frame(y,X))
 
 
-d <- transformation(times[1], censored[1], total_bins)
 
 
-for(i in 2:length(times)) {
-  d <- rbind(d, transformation(times[i], censored[i], total_bins))
-}
 
-m <- glm(y ~ 0 + ., data = d, family = "binomial")
-summary(m)
 
-#if estimates are negative, then you have TOOOOOOO MANYYYY BINS--beware, you can either 1. reduce # of bins or 2. use kernel regression
 
-#ask how to do kernel regression to smooth out empty bins
-```
+
+
+
