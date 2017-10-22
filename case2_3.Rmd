@@ -5,6 +5,33 @@ date: "October 22, 2017"
 output: html_document
 ---
 
+#Introduction
 ```{r}
 
 ```
+
+#Methodology
+```{r}
+
+```
+
+#Dataset
+```{r}
+```
+
+#Final Model
+```{r}
+```
+
+##EDA
+```{r}
+```
+
+##Goodness of Fit Test
+```{r}
+```
+
+##Discussion
+```{r}
+```
+
