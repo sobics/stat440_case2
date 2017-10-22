@@ -105,6 +105,12 @@ plot(1:nlevels(bin), hazard, type='l')
 Looking at the hazard plot, after bin 6 (1.1,1.3], the survival log odds are significantly lower.
 
 
+
+
+##EDA
+```{r}
+```
+
 ##Model Checks
 To understand how well the model fits, we performed goodness of fit tests and a model check assumptions.
 ```{r echo = F}
@@ -124,13 +130,6 @@ m = mean(kern.pred != kelly$fail)
 ```
 Overall, the model fits the true dataset `r m*100`% of the time when predicting for failure over the entire dataset, which reaffirms the fact that the model can be improved. 
 
-##EDA
-```{r}
-```
-
-##Goodness of Fit Test
-```{r}
-```
 
 ##Discussion
 ```{r}
