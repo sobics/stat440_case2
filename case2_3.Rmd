@@ -65,8 +65,8 @@ However, when changing the response to failure (0/1), the most significant predi
 
 Originally, for the CPH model and KM model, we used nctdel as the response, and noticed goodness-of-fit issues. We decided to create a Kernel Regression model with failure as the response to explore the robustness of this new model.
 
-##Kernel Regression with 13 Bins
-13 bins were calculated to fit the kernels. The bins are unevenly spaced because the data has a higher concentration of points for the feature nctdel between 0 and 2, even though its range is (0,26.25). The model has fail as the response, a kernel estimation of nctdel with 4 knots, and the features male, black, hispanic, and count_sn. The bin levels are (-Inf,0], (0,0.3], (0.3,0.7], (0.7,1], (1,1.1], (1.1,1.3], (1.3,1.6], (1.6,1.9], (1.9,10], (10,13], (13,15], (17, Inf]. A summary of the model noted some significance for the feature nctdel (for the full summary, Appendix C).
+##Kernel Regression with 10 Bins
+13 bins were calculated to fit the kernels. The bins are unevenly spaced because the data has a higher concentration of points for the feature nctdel between 0 and 2, even though its range is (0,26.25). We chose 10 bins because we wanted to be careful of the sample size with only 335 observations. If we split that over too many bins, the sample sizes in the individual kernels would be uncomfortably small for regression. The model has fail as the response, a kernel estimation of nctdel with 4 knots, and the features male, black, hispanic, and count_sn. The bin levels are (-Inf,0], (0,0.3], (0.3,0.7], (0.7,1], (1,1.1], (1.1,1.3], (1.3,1.6], (1.6,1.9], (1.9,10], (10,13], (13,15], (17, Inf]. A summary of the model noted some significance for the feature nctdel (for the full summary, Appendix C).
 
 
 ```{r echo = F}
@@ -81,23 +81,6 @@ kelly$bins = bin
 # each row is one bin, the columns are the kernel weights for that bin
 ```
 
-```{r echo = F}
-#functions
-kern_distribution <- function(x,knots = 4) {
-  ### s: #controls how wide the kernels are, s should be half the distance between two knots 
-  ### tau: decides where the breaks are based on the number of knots
-  ###knots: number of splits/peaks in the data
-  ##x and y are the data
-  
-  tau <- seq(min(x), max(x), length.out = knots)
-  s <- diff(tau)[1]/2
-  X <- matrix(0, nrow=length(x),ncol=knots)
-  for(i in 1:knots) {
-    X[,i] <- x * dnorm(x, tau[i], s)
-  }
-  return(X)
-}
-```
 
 ```{r echo = F, ignore = T}
 #trial and error
