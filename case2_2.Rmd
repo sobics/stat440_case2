@@ -185,6 +185,88 @@ m2 <- glm(y ~ 0 + ., data=data.frame(d2_full), family="binomial")
 # make a smooth plot
 ```
 
+
+
+
+
+###JONATHAN's REAL CODE
+```{r}
+# fake data
+times <- 1 + c(rgeom(20, .3), rgeom(20,.05))
+total_bins <- max(times)
+censored <- rbinom(40, 1, .2)
+# example transformation
+# transformation function
+
+transformation <- function(time, censored, total_bins) {
+  y <- rep(0,time)
+  if(!censored) {
+    y[time] <- 1
+  }
+  
+  # if you are doing kernel regression then you will calculate X differently here (using the kernels)
+  X <- array(0, dim=c(time, total_bins))
+  diag(X) <- 1
+  
+  return(data.frame(y,X))
+}
+# apply the transformation to the data set
+d <- transformation(times[1], censored[1], total_bins)
+for(i in 2:length(times)) {
+  d <- rbind(d, transformation(times[i], censored[i], total_bins))
+}
+# fit a model
+m <- glm(y ~ 0 + ., data=d, family="binomial")
+summary(m)
+
+beta <- coef(m)
+hazard <- exp(beta)/(1+exp(beta))
+plot(1:total_bins, hazard, type='l')
+# this is pretty ugly. Let's smooth it out with kernel regression.
+# set up the kernels
+kernels <- 4
+tau <- seq(from=1, to=total_bins, length.out = kernels)
+sigma <- (tau[2]-tau[1])/2
+# we're going to pre-calculate a bunch of kernel weights
+# each row is one bin, the columns are the kernel weights for that bin
+kernel.weights <- matrix(dnorm(rep(1:80,kernels),rep(tau,each=80),sigma), ncol=kernels)
+# now we'll create a new transform function
+kernel.transformation <- function(time, censored, total_bins) {
+  y <- rep(0,time)
+  if(!censored) {
+    y[time] <- 1
+  }
+  
+  # X has kernel weights instead of the bin indicators that it had before
+  X <- array(kernel.weights[1:time,],dim=c(time,kernels))
+  
+  return(data.frame(y,X))
+}
+d2 <- kernel.transformation(times[1], censored[1], total_bins)
+for(i in 2:length(times)) {
+  d2 <- rbind(d2, kernel.transformation(times[i], censored[i], total_bins))
+}
+# fit a model
+m2 <- glm(y ~ 0 + ., data=d2, family="binomial")
+summary(m2)
+# make a smooth plot
+
+hazard.logodds <- predict(m2, newdata = data.frame(kernel.weights))
+hazard <- exp(hazard.logodds)/(1+exp(hazard.logodds))
+plot(1:total_bins, hazard, type='l')
+# you can choose different numbers of kernels or even use un-evenly spaced kernels to capture more detail early on where you have more data.
+```
+
+
+
+
+
+
+
+
+
+
+
 ```{r echo = F}
 X.pred <- kernel.weights[,-1]
 
