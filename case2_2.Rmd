@@ -1,11 +1,7 @@
 ---
 title: "Case 2 Part 1"
 author: "Sonia Xu, Grant Goettel, Ian Hua"
-<<<<<<< HEAD
-date: "September 29, 2017"
-=======
 date: "October 18, 2017"
->>>>>>> af35ff20a1e9292b07f9eb4f9c3b2ca933cb6a43
 output:
   pdf_document: default
   html_document: default
@@ -36,7 +32,6 @@ all4 = 0/1 indicator all 4 main symptoms
 ```{r include = F, warning= F, message=F}
 
 #load libraries and data
-```{r}
 library(survival)
 library(survminer)
 library(dplyr)
