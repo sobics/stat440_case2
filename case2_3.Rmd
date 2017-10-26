@@ -66,12 +66,13 @@ We decided to create a Kernel Regression model with failure as the response to e
 ##Kernel Regression with 10 Bins
 13 bins were calculated to fit the kernels. The bins are unevenly spaced because the data has a higher concentration of points for the feature nctdel between 0 and 2, even though its range is (0,26.25). We chose 10 bins because we wanted to be careful of the sample size with only 335 observations. If we split that over too many bins, the sample sizes in the individual kernels would be uncomfortably small for regression. The model has fail as the response, a kernel estimation of nctdel with 4 knots, and the features male, black, hispanic, and count_sn. The bin levels are (-Inf,0], (0,0.3], (0.3,0.7], (0.7,1], (1,1.1], (1.1,1.3], (1.3,1.6], (1.6,1.9], (1.9,10], (10,13], (13,15], (17, Inf]. A summary of the model noted some significance for the feature nctdel (for the full summary, Appendix C).
 
+##binning the data
 
 ```{r echo = F}
 # set up the kernels
 #bin <- cut(kelly$nctdel, c(-Inf,seq(0,26,.3),Inf))
-quants <- quantile(kelly$nctdel, probs = seq(0,1,length.out = 10))
-bin <- cut(kelly$nctdel, quants)
+quants <- quantile(kelly$nctdel, probs = seq(0,1,length.out = 11))
+bin <- cut(kelly$nctdel, c(-1,quants))
 levels(bin) <- seq(1:nlevels(bin))
 #bins <- cut(kelly$nctdel, c(-Inf,0,0.5, 0.7, 1.3, 2.05,10,15,Inf)) #manually choose bins based on quantiles and my own knowledge
 # we're going to pre-calculate a bunch of kernel weights
@@ -169,16 +170,7 @@ m2 <- glm(y ~ 0 + ., data=d2, family="binomial")
 summary(m2)
 # make a smooth plot
 
-
-###CREATE HAZARD --> y is the binned time at failure
-
-hazard.logodds <- predict(m2, newdata = data.frame(kernel.weights))
-hazard <- exp(hazard.logodds)/(1+exp(hazard.logodds))
-plot(1:total_bins, hazard, type='l')
-# you can choose different numbers of kernels or even use un-evenly spaced kernels to capture more detail early on where you have more data.
 ```
-
-
 
 
 ##Model Checks
@@ -201,6 +193,19 @@ Overall, the model fits the true dataset `r m*100`% of the time when predicting 
 
 
 ##Discussion
+###CREATE HAZARD --> y is the binned time at failure
+```{r}
+##select rows in 
+hazard.logodds <- predict(m2, newdata = data.frame(d2))
+
+
+###change to assess different survival functions
+
+
+hazard <- exp(hazard.logodds)/(1+exp(hazard.logodds))
+plot(1:total_bins, hazard, type='l')
+# you can choose different numbers of kernels or even use un-evenly spaced kernels to capture more detail early on where you have more data.
+```
 
 ##Gender
 
