@@ -19,32 +19,14 @@ kelly <- read.table("kellydat.txt", header = T)
 kelly <- kelly %>% mutate(count_sn = sn1 + sn2*2 + sn3*3 + all4*4) %>% select(-c(sn1, sn2, sn3, all4))
 ```
 
-```{r echo = F}
-#functions
-kern_distribution <- function(x,knots = 4) {
-  ### s: #controls how wide the kernels are, s should be half the distance between two knots 
-  ### tau: decides where the breaks are based on the number of knots
-  ###knots: number of splits/peaks in the data
-  ##x and y are the data
-  
-  tau <- seq(min(x), max(x), length.out = knots)
-  s <- diff(tau)[1]/2
-  X <- matrix(0, nrow=length(x),ncol=knots)
-  for(i in 1:knots) {
-    X[,i] <- x * dnorm(x, tau[i], s)
-  }
-  return(X)
-}
-```
-
 <!-- BACKGROUND: Study of time to critical neurological assessment for patients with stroke-like symptoms who are admitted to the emergency room.  A possible predictor is number of major stroke symptoms reported, ranging from 0 to 4.  Treatment for acute stroke includes thrombolytic therapy, which can potentially improve neurological functioning for ischemic stroke patients if administered soon after symptom onset (within 3 hours).  Since treating patients quickly is critically important for their long-term prognosis, minimizing the times from symptom onset to emergency room (ED) arrival, from ED arrival to diagnosis, and from diagnosis to treatment is of paramount concern.
 INTEREST: Factors predictive of the time to critical neurological assessment following admission to the ED for n=335 patients with mild to moderate motor impairment.  The goal of the analysis is to perform inferences on the impact of clinical presentation, gender and race on time to neurological assessment.  Clinical presentation is measured as a count of reported major stroke symptoms, including headache, loss of motor skills or weakness, trouble talking or understanding, and vision problems.
 -->
 #Introduction
-The following data is from a study of time to critical neurological assessment for patients with stroke-like symptoms who were admitted to the emergency room. The purpose of the analysis is to perform inferences on the impact of clinical presentation (reported number of makor stroke symptoms), gender, and race on time to neurological asessment. This paper fits a model that identifies the differences in wait time to neurological assessment based on these features of interest. A final model of kernel regression with a response of fail, continuous feature of nctdel estimated via kernel regression, and binary features of black, hispanic, male, number of symptoms.
+The following data is from a study of time to critical neurological assessment for patients with stroke-like symptoms who were admitted to the emergency room. The purpose of the analysis is to perform inferences on the impact of clinical presentation (reported number of makor stroke symptoms), gender, and race on time to neurological asessment. This paper fits a model that identifies the differences in wait time to neurological assessment based on these features of interest. A final model of kernel regression with a response of time at failure, continuous feature of nctdel estimated via kernel regression, and categorical features of black, hispanic, male, number of symptoms.
 
-#Data set
-The data set contained information about the amount of time elapsed from arrival at the ER to the assessment, and whether or not the patient received a CT scan. It also contained data about whether each patient was male or female, whether they were black or hispanic or not, and the amount of major symptoms of a stroke they had upon arrival (out of 4 main symptoms). Rather than have four separate indicator variables showing whether they had 1, 2, 3, or 4 symptoms, we created a single numerical variable containing the amount of symptoms.
+#Dataset
+The dataset contained information about the amount of time elapsed from arrival at the ER to the assessment, and whether or not the patient received a CT scan. It also contained data about whether each patient was male or female, whether they were black or hispanic or not, and the amount of major symptoms of a stroke they had upon arrival (out of 4 main symptoms). Rather than have four separate indicator variables showing whether they had 1, 2, 3, or 4 symptoms, we created a single numerical variable containing the amount of symptoms.
 
 #Methodology
 To assess the impact of clinical presentation, gender and race on time to neurological assessment, multiple models and analyses were explored to find the best model that fit the data. After exploring Cox Proportional Hazards, Kaplan-Meier Estimate, Random Forest, and Kernel Regression, the Kernel Regression Model seemed to perform the best despite its flaws. We chose 10 bins based on quantiles to account for the uneven frequencies of the data. 
@@ -76,10 +58,10 @@ ggplot(kelly, aes(nctdel, group = factor(male), fill = factor(male,labels=c("no"
 
 #Final Model
 
-We decided to create a Kernel Regression model with failure as the response to explore the robustness of this new model.
+We decided to create a Kernel Regression model with time at failure as the response to explore the robustness of this new model.
 
 ##Kernel Regression with 10 Bins
-10 bins were calculated to fit the kernels. The bins are unevenly spaced because the data has a higher concentration of points for the feature nctdel between 0 and 2, even though its range is (0,26.25). We chose 10 bins because we wanted to be careful of the sample size with only 335 observations. If we split that over too many bins, the sample sizes in the individual kernels would be uncomfortably small for regression. The model has fail as the response, a kernel estimation of nctdel with 4 knots, and the features male, black, hispanic, and count_sn. The bin levels are (-Inf,0], (0,0.357], (0.357,0.737], (0.737,0.983], (0.983,1.21], (1.21,1.49], (1.49,1.73], (1.73,2.16], (2.16,2.8], (2.8, Inf]. A summary of the model noted some significance for the feature nctdel (for the full summary, Appendix C).
+10 bins were calculated to fit the kernels. The bins are unevenly spaced because the data has a higher concentration of points for the feature nctdel between 0 and 2, even though its range is (0,26.25). We chose 10 bins because we wanted to be careful of the sample size with only 335 observations. If we split that over too many bins, the sample sizes in the individual kernels would be uncomfortably small for regression. The model has time at failure as the response, a kernel estimation of nctdel, and the features male, black, hispanic, and count_sn. The bin levels are (-Inf,0], (0,0.357], (0.357,0.737], (0.737,0.983], (0.983,1.21], (1.21,1.49], (1.49,1.73], (1.73,2.16], (2.16,2.8], (2.8, Inf]. A summary of the model noted some significance for the feature nctdel (for the full summary, Appendix C).
 
 ##Bins
 
@@ -133,7 +115,7 @@ tau <- seq(from=1, to=total_bins, length.out = kernels)
 sigma <- (tau[2]-tau[1])/2
 # we're going to pre-calculate a bunch of kernel weights
 # each row is one bin, the columns are the kernel weights for that bin
-kernel.weights <- matrix(dnorm(rep(1:80,kernels),rep(tau,each=80),sigma), ncol=kernels)
+kernel.weights <- matrix(dnorm(rep(1:10,kernels),rep(tau,each=10),sigma), ncol=kernels)
 # now we'll create a new transform function
 kernel.transformation <- function(time, censored, other_cov, total_bins) {
   y <- rep(0,time)
@@ -169,39 +151,123 @@ plot(m2)
 ```
 Looking at the Residuals vs. Fitted graph, the points do not exhibit a pattern and are relatively evenly distributed. With the Residuals vs. Leverage plot, the points are not homoscedastically distributed. In addition, data no longer tends to be normal the longer the patient stays waiting, as shown in the Normal Q-Q plot. Generally, the model seems to decently fit our data and is exceptionally better than previous models.
 ```{r echo = F}
-X.test <- kelly %>% select(male, black, hisp, count_sn)
-
-X.test <- data.frame(cbind(kern_distribution(kelly$nctdel), X.test))
-
-
-kern.pred <- round(predict.glm(m2, newdata = data.frame(X.test), type = 'response'))
-m = mean(kern.pred != kelly$fail)
+X.test <- data.frame(d2) %>% select(-y)
+kern.pred <- round(predict.glm(m2, newdata = data.frame(d2), type = 'response'))
+m = mean(kern.pred == d2$y)
 ```
 The model fits the true dataset `r m*100`% of the time when predicting for failure over the entire dataset, implying a decent model which holds much potential given the assumptions hold.
 
 
 ##Discussion
-###CREATE HAZARD --> y is the binned time at failure
-```{r}
+##Gender
+Looking at the survival function of Males (with no symptoms, neither black nor male) against Females (with the same characteristics), it reaffirms the EDA that females tend to have a lower time until assessment than males. 
+```{r echo = F}
 ##select rows in d2
 ##first one to test is only black--> use as baseline?
 
+haz_charac_base <- charac[1:10,] %>% mutate(male = 0, black = 0, hisp = 0, count_sn = 0) #female, not black or hispanic, no symptoms
+haz_charac_1 <- charac[1:10,] %>% mutate(male = 1, black = 0, hisp = 0, count_sn = 0)
 
-hazard.logodds <- predict(m2, newdata = data.frame(d2))
-
+hazard.logodds_base <- predict(m2, newdata = data.frame(cbind(kernel.weights, haz_charac_base)))
+hazard.logodds_1 <- predict(m2, newdata = data.frame(cbind(kernel.weights, haz_charac_1)))
 ###change to assess different survival functions
 
-hazard2 <- exp(hazard.logodds)/(1+exp(hazard.logodds))
-plot(1:total_bins, hazard2, type='l')
-# you can choose different numbers of kernels or even use un-evenly spaced kernels to capture more detail early on where you have more data.
+hazard2_base <- exp(hazard.logodds_base)/(1+exp(hazard.logodds_base))
+hazard2_1 <- exp(hazard.logodds_1)/(1+exp(hazard.logodds_1))
+hazard2_1 <- hazard2_1*(1-hazard2_base)
+
+plot(1:total_bins, hazard2_base, type='l', col = "black", ylim=(c(0,0.06)), ylab = "hazard", xlab = "time bins")
+par(new=T)
+plot(1:total_bins, hazard2_1, col = "red",type='l', ylim=(c(0,0.06)), xlab = "time bins", ylab = "hazard", main = "Males vs. Females", sub = "With No Symptoms, Neither Black nor Hispanic")
+legend(8,0.05, legend=c("Male", "Female"), col=c("black", "red"), lty = c(1,1), cex=0.8)
 ```
 
-##Gender
 
 ##Race
 
+###Black
+Again, this survival function reaffirms that Non-Black patients have shorter wait times than Black patients (with features 4 symptoms, male, and non-hispanic held constant).
+```{r echo = F}
+##select rows in d2
+##first one to test is only black--> use as baseline?
+
+haz_charac_base <- charac[1:10,] %>% mutate(male = 1, black = 1, hisp = 0, count_sn = 4) #male, black,4 symptoms
+haz_charac_1 <- charac[1:10,] %>% mutate(male = 1, black = 0, hisp = 0, count_sn = 4)
+
+hazard.logodds_base <- predict(m2, newdata = data.frame(cbind(kernel.weights, haz_charac_base)))
+hazard.logodds_1 <- predict(m2, newdata = data.frame(cbind(kernel.weights, haz_charac_1)))
+###change to assess different survival functions
+
+hazard2_base <- exp(hazard.logodds_base)/(1+exp(hazard.logodds_base))
+hazard2_1 <- exp(hazard.logodds_1)/(1+exp(hazard.logodds_1))
+hazard2_1 <- hazard2_1*(1-hazard2_base)
+
+plot(1:total_bins, hazard2_base, type='l', col = "black", ylim=(c(0,0.06)), ylab = "hazard", xlab = "time bins")
+par(new=T)
+plot(1:total_bins, hazard2_1, col = "red",type='l', ylim=(c(0,0.06)), xlab = "time bins", ylab = "hazard", main = "Black vs Non-Black", sub = "With 4 Symptoms, Male, Non-Hispanic")
+legend(8,0.05, legend=c("Black", "Non-Black"), col=c("black", "red"), lty = c(1,1), cex=0.8)
+```
+###Hispanic
+
+Hispanic patients tend to have a shorter wait time than Non-Hispanic patients.
+```{r echo = F}
+##select rows in d2
+##first one to test is only black--> use as baseline?
+
+haz_charac_base <- charac[1:10,] %>% mutate(male = 1, black = 0, hisp = 1, count_sn = 4) #male, black,4 symptoms
+haz_charac_1 <- charac[1:10,] %>% mutate(male = 1, black = 0, hisp = 0, count_sn = 4)
+
+hazard.logodds_base <- predict(m2, newdata = data.frame(cbind(kernel.weights, haz_charac_base)))
+hazard.logodds_1 <- predict(m2, newdata = data.frame(cbind(kernel.weights, haz_charac_1)))
+###change to assess different survival functions
+
+hazard2_base <- exp(hazard.logodds_base)/(1+exp(hazard.logodds_base))
+hazard2_1 <- exp(hazard.logodds_1)/(1+exp(hazard.logodds_1))
+hazard2_1 <- hazard2_1*(1-hazard2_base)
+
+plot(1:total_bins, hazard2_base, type='l', col = "black", ylim=(c(0,0.06)), ylab = "hazard", xlab = "time bins")
+par(new=T)
+plot(1:total_bins, hazard2_1, col = "red",type='l', ylim=(c(0,0.06)), xlab = "time bins", ylab = "hazard", main = "Hispanic vs Non-Hispanic", sub = "With 4 Symptoms, Male, Non-Black")
+legend(8,0.05, legend=c("Hispanic", "Non-Hispanic"), col=c("black", "red"), lty = c(1,1), cex=0.8)
+```
+
 ##Symptoms
 
+Patients who exhibit 4 symptoms have shorter wait times than those who have 3,2, and 1. 
+```{r echo = F}
+##select rows in d2
+##first one to test is only black--> use as baseline?
+
+haz_charac_base <- charac[1:10,] %>% mutate(male = 1, black = 0, hisp = 0, count_sn = 4) #male, black,4 symptoms
+haz_charac_1 <- charac[1:10,] %>% mutate(male = 1, black = 0, hisp = 0, count_sn = 3)
+haz_charac_2 <- charac[1:10,] %>% mutate(male = 1, black = 0, hisp = 0, count_sn = 2)
+haz_charac_3 <- charac[1:10,] %>% mutate(male = 1, black = 0, hisp = 0, count_sn = 1)
+
+hazard.logodds_base <- predict(m2, newdata = data.frame(cbind(kernel.weights, haz_charac_base)))
+hazard.logodds_1 <- predict(m2, newdata = data.frame(cbind(kernel.weights, haz_charac_1)))
+hazard.logodds_2 <- predict(m2, newdata = data.frame(cbind(kernel.weights, haz_charac_2)))
+hazard.logodds_3 <- predict(m2, newdata = data.frame(cbind(kernel.weights, haz_charac_3)))
+###change to assess different survival functions
+
+hazard2_base <- exp(hazard.logodds_base)/(1+exp(hazard.logodds_base))
+hazard2_1 <- exp(hazard.logodds_1)/(1+exp(hazard.logodds_1))
+hazard2_1 <- hazard2_1*(1-hazard2_base)
+hazard2_2 <- exp(hazard.logodds_2)/(1+exp(hazard.logodds_2))
+hazard2_2 <- hazard2_2*(1-hazard2_base)*(1-hazard2_1)
+hazard2_3 <- exp(hazard.logodds_3)/(1+exp(hazard.logodds_3))
+hazard2_3 <- hazard2_3*(1-hazard2_base)*(1-hazard2_1)*(1-hazard2_2)
+
+plot(1:total_bins, hazard2_base, type='l', col = "black", ylim=(c(0,0.06)), ylab = "hazard", xlab = "time bins")
+par(new=T)
+plot(1:total_bins, hazard2_1, type='l', col = "red", ylim=(c(0,0.06)), ylab = "hazard", xlab = "time bins")
+par(new=T)
+plot(1:total_bins, hazard2_2, type='l', col = "yellow", ylim=(c(0,0.06)), ylab = "hazard", xlab = "time bins")
+par(new = T)
+plot(1:total_bins, hazard2_3, col = "green",type='l', ylim=(c(0,0.06)), xlab = "time bins", ylab = "hazard", main = "Symptoms", sub = "With Male, Non-Black, Non-Hispanic")
+
+legend(8,0.05, legend=c("4 Symptoms", "3 Symptoms", "2 Symptoms", "1 Symptom"), col=c("black", "red", "yellow", "green"), lty = c(1,1), cex=0.8)
+```
 
 #Recommendations
+
 A kernel regression hazard model is dependent on all the observations; a slight change in some observations with high leverage could potentially change the model quite a bit. Reproducing this study on various differing datasets could prove beneficial in discovering a better model. It would be also be interesting to test different percentiles for the binning of the model. In addition, the bump in the hazard plot seems quite peculiar and the cases for those patients should be investigated further.
