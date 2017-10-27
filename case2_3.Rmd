@@ -288,3 +288,10 @@ A kernel regression hazard model is dependent on all the observations; a slight 
 ```{r echo = F}
 summary(m2)
 ```
+
+#Contributions
+Ian Hua: Discussion, Methodology, Model Checks
+
+Grant Goettel: EDA, Dataset, Binning
+
+Sonia Xu: Hazards, Final Model, Introduction
