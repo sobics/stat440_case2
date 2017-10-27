@@ -201,5 +201,4 @@ plot(1:total_bins, hazard2, type='l')
 
 
 #Recommendations
-
-
+A kernal regression hazard model is dependent on all the observations; a slight change in some observations with high leverage could potentially change the model quite a bit. Reproducing this study on various differing datasets could prove beneficial in discovering a better model. It would be also be interesting to test different percentiles for the binning of the model. In addition, the bump in the hazard plot seems quite peculiar and the cases for those patients should be investigated further.
