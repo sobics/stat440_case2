@@ -290,6 +290,7 @@ summary(m2)
 ```
 
 #Contributions
+
 Ian Hua: Discussion, Methodology, Model Checks
 
 Grant Goettel: EDA, Dataset, Binning
