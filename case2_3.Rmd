@@ -280,7 +280,7 @@ legend(8,0.05, legend=c("4 Symptoms", "3 Symptoms", "2 Symptoms", "1 Symptom"), 
 ```
 
 #Recommendations
-Based on the survival function produced from the fitted model, there appears to be a positive bias towards females, Black patients, and non-Hispanic patients. In a perfect world, assesssment bias should only depend on the number of symptoms--intuitively, the more symptoms, the greater urgency, so a shorter wait time. Further qualitative studies should be conducted to understand why neurological assessments favor females, Black, and non-Hispanic patients.
+Based on the survival function produced from the fitted model, there appears to be a positive bias towards females, non-Black patients, and Hispanic patients. In a perfect world, assesssment bias should only depend on the number of symptoms--intuitively, the more symptoms, the greater urgency, so a shorter wait time. Further qualitative studies should be conducted to understand why neurological assessments favor females, non-Black, and Hispanic patients.
 
 A kernel regression hazard model is dependent on all the observations; a slight change in some observations with high leverage could potentially change the model quite a bit. Reproducing this study on various differing datasets could prove beneficial in discovering a better model. It would be also be interesting to test different percentiles for the binning of the model. <!---In addition, the bump in the hazard plot seems quite peculiar and the cases for those patients should be investigated further.-->
 
