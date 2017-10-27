@@ -47,7 +47,7 @@ The following data is from a study of time to critical neurological assessment f
 The data set contained information about the amount of time elapsed from arrival at the ER to the assessment, and whether or not the patient received a CT scan. It also contained data about whether each patient was male or female, whether they were black or hispanic or not, and the amount of major symptoms of a stroke they had upon arrival (out of 4 main symptoms). Rather than have four separate indicator variables showing whether they had 1, 2, 3, or 4 symptoms, we created a single numerical variable containing the amount of symptoms.
 
 #Methodology
-To assess the impact of clinical presentation, gender and race on time to neurological assessment, multiple models and analyses were explored to find the best model that fit the data. After exploring Cox Proportional Hazards, Kaplan-Meier Estimate, Random Forest, and Kernel Regression, the Kernel Regression Model seemed to perform the best despite its flaws. We chose 10 bins based on quantiles to account for the uneven frequencies of the data.
+To assess the impact of clinical presentation, gender and race on time to neurological assessment, multiple models and analyses were explored to find the best model that fit the data. After exploring Cox Proportional Hazards, Kaplan-Meier Estimate, Random Forest, and Kernel Regression, the Kernel Regression Model seemed to perform the best despite its flaws. We chose 10 bins based on quantiles to account for the uneven frequencies of the data. 
 
 #EDA
 
@@ -167,7 +167,7 @@ To understand how well the model fits, we performed goodness of fit tests and a 
 par(mfrow = c(2,2))
 plot(m2)
 ```
-Looking at the Residuals vs. Fitted Graph, the points do not exhibit a pattern. However, the points are not evenly distrbuted, so they are heteroscedastic. Similarly, with Residuals vs. Leverage, the points are not homoscedastically distributed.
+Looking at the Residuals vs. Fitted graph, the points do not exhibit a pattern and are relatively evenly distributed. With the Residuals vs. Leverage plot, the points are not homoscedastically distributed. In addition, data no longer tends to be normal the longer the patient stays waiting, as shown in the Normal Q-Q plot. Generally, the model seems to decently fit our data and is exceptionally better than previous models.
 ```{r echo = F}
 X.test <- kelly %>% select(male, black, hisp, count_sn)
 
@@ -177,7 +177,7 @@ X.test <- data.frame(cbind(kern_distribution(kelly$nctdel), X.test))
 kern.pred <- round(predict.glm(m2, newdata = data.frame(X.test), type = 'response'))
 m = mean(kern.pred != kelly$fail)
 ```
-Overall, the model fits the true dataset `r m*100`% of the time when predicting for failure over the entire dataset, which reaffirms the fact that the model can be improved. 
+The model fits the true dataset `r m*100`% of the time when predicting for failure over the entire dataset, implying a decent model which holds much potential given the assumptions hold.
 
 
 ##Discussion
@@ -188,7 +188,6 @@ hazard.logodds <- predict(m2, newdata = data.frame(d2))
 
 ###change to assess different survival functions
 
-length(hazard.logodds)
 hazard2 <- exp(hazard.logodds)/(1+exp(hazard.logodds))
 plot(1:total_bins, hazard2, type='l')
 # you can choose different numbers of kernels or even use un-evenly spaced kernels to capture more detail early on where you have more data.
