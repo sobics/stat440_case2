@@ -145,11 +145,16 @@ m2 <- glm(y ~ 0 + ., data=d2, family="binomial")
 
 ##Model Checks
 To understand how well the model fits, we performed goodness of fit tests and a model check assumptions.
+
 ```{r echo = F}
-par(mar=c(1.5,1.5,1.5,1.5))
+par(mar=c(2,2,2,2))
 par(mfrow = c(2,2))
 plot(m2)
 ```
+
+
+
+
 
 
 
