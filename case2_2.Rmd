@@ -2,6 +2,7 @@
 title: "Case 2 Part 1"
 author: "Sonia Xu, Grant Goettel, Ian Hua"
 date: "October 18, 2017"
+
 output:
   pdf_document: default
   html_document: default
@@ -192,9 +193,9 @@ m2 <- glm(y ~ 0 + ., data=data.frame(d2_full), family="binomial")
 ###JONATHAN's REAL CODE
 ```{r}
 # fake data
-times <- 1 + c(rgeom(20, .3), rgeom(20,.05))
+times <- kelly$nctdel
 total_bins <- max(times)
-censored <- rbinom(40, 1, .2)
+censored <- kelly$fail
 # example transformation
 # transformation function
 

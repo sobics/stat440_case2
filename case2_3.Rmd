@@ -1,8 +1,10 @@
 ---
 title: "Case 2 Part 3"
 author: "Sonia Xu, Grant Goettel, Ian Hua"
-date: "October 22, 2017"
-output: html_document
+date: "October 27, 2017"
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r echo = F, warning = F, include = F}
@@ -61,7 +63,7 @@ ggplot(kelly, aes(nctdel, group = factor(male), fill = factor(male,labels=c("no"
 We decided to create a Kernel Regression model with time at failure as the response to explore the robustness of this new model.
 
 ##Kernel Regression with 10 Bins
-10 bins were calculated to fit the kernels. The bins are unevenly spaced because the data has a higher concentration of points for the feature nctdel between 0 and 2, even though its range is (0,26.25). We chose 10 bins because we wanted to be careful of the sample size with only 335 observations. If we split that over too many bins, the sample sizes in the individual kernels would be uncomfortably small for regression. The model has time at failure as the response, a kernel estimation of nctdel, and the features male, black, hispanic, and count_sn. The bin levels are (-Inf,0], (0,0.357], (0.357,0.737], (0.737,0.983], (0.983,1.21], (1.21,1.49], (1.49,1.73], (1.73,2.16], (2.16,2.8], (2.8, Inf]. A summary of the model noted some significance for the feature nctdel (for the full summary, Appendix C).
+10 bins were calculated to fit the kernels. The bins are unevenly spaced because the data has a higher concentration of points for the feature nctdel between 0 and 2, even though its range is (0,26.25). We chose 10 bins because we wanted to be careful of the sample size with only 335 observations. If we split that over too many bins, the sample sizes in the individual kernels would be uncomfortably small for regression. The model has time at failure as the response, a kernel estimation of nctdel, and the features male, black, hispanic, and count_sn. The bin levels are (-Inf,0], (0,0.357], (0.357,0.737], (0.737,0.983], (0.983,1.21], (1.21,1.49], (1.49,1.73], (1.73,2.16], (2.16,2.8], (2.8, Inf]. A summary of the model noted some significance for the feature nctdel (for the full summary, Appendix A).
 
 ##Bins
 
@@ -74,7 +76,7 @@ levels(bin) <- seq(1:nlevels(bin))
 ```
 
 
-```{r, echo = F}
+```{r, echo = F, warning = F}
 # instantiate data
 times <- as.numeric(bin)
 total_bins <- max(times)
@@ -101,12 +103,12 @@ for(i in 2:length(times)) {
   d <- rbind(d, transformation(times[i], censored[i], total_bins))
 }
 # fit a model
-m <- glm(y ~ 0 + ., data=d, family="binomial")
-summary(m)
+#m <- glm(y ~ 0 + ., data=d, family="binomial")
+#summary(m)
 
-beta <- coef(m)
-hazard <- exp(beta)/(1+exp(beta))
-plot(1:total_bins, hazard, type='l')
+#beta <- coef(m)
+#hazard <- exp(beta)/(1+exp(beta))
+#plot(1:total_bins, hazard, type='l')
 
 # this is pretty ugly. Let's smooth it out with kernel regression.
 # set up the kernels
@@ -138,17 +140,19 @@ for(i in 2:length(times)) {
 
 # fit a model
 m2 <- glm(y ~ 0 + ., data=d2, family="binomial")
-summary(m2)
-
 ```
 
 
 ##Model Checks
 To understand how well the model fits, we performed goodness of fit tests and a model check assumptions.
 ```{r echo = F}
+par(mar=c(1.5,1.5,1.5,1.5))
 par(mfrow = c(2,2))
 plot(m2)
 ```
+
+
+
 Looking at the Residuals vs. Fitted graph, the points do not exhibit a pattern and are relatively evenly distributed. With the Residuals vs. Leverage plot, the points are not homoscedastically distributed. In addition, data no longer tends to be normal the longer the patient stays waiting, as shown in the Normal Q-Q plot. Generally, the model seems to decently fit our data and is exceptionally better than previous models.
 ```{r echo = F}
 X.test <- data.frame(d2) %>% select(-y)
@@ -159,9 +163,12 @@ The model fits the true dataset `r m*100`% of the time when predicting for failu
 
 
 ##Discussion
+
 ##Gender
 Looking at the survival function of Males (with no symptoms, neither black nor male) against Females (with the same characteristics), it reaffirms the EDA that females tend to have a lower time until assessment than males. 
+
 ```{r echo = F}
+knitr::opts_chunk$set(fig.width=5, fig.height=3) 
 ##select rows in d2
 ##first one to test is only black--> use as baseline?
 
@@ -179,7 +186,7 @@ hazard2_1 <- hazard2_1*(1-hazard2_base)
 plot(1:total_bins, hazard2_base, type='l', col = "black", ylim=(c(0,0.06)), ylab = "hazard", xlab = "time bins")
 par(new=T)
 plot(1:total_bins, hazard2_1, col = "red",type='l', ylim=(c(0,0.06)), xlab = "time bins", ylab = "hazard", main = "Males vs. Females", sub = "With No Symptoms, Neither Black nor Hispanic")
-legend(8,0.05, legend=c("Male", "Female"), col=c("black", "red"), lty = c(1,1), cex=0.8)
+legend(8,0.05, legend=c("Male", "Female"), col=c("black", "red"), lty = c(1,1), cex=0.5)
 ```
 
 
@@ -187,6 +194,7 @@ legend(8,0.05, legend=c("Male", "Female"), col=c("black", "red"), lty = c(1,1), 
 
 ###Black
 Again, this survival function reaffirms that Non-Black patients have shorter wait times than Black patients (with features 4 symptoms, male, and non-hispanic held constant).
+
 ```{r echo = F}
 ##select rows in d2
 ##first one to test is only black--> use as baseline?
@@ -205,11 +213,13 @@ hazard2_1 <- hazard2_1*(1-hazard2_base)
 plot(1:total_bins, hazard2_base, type='l', col = "black", ylim=(c(0,0.06)), ylab = "hazard", xlab = "time bins")
 par(new=T)
 plot(1:total_bins, hazard2_1, col = "red",type='l', ylim=(c(0,0.06)), xlab = "time bins", ylab = "hazard", main = "Black vs Non-Black", sub = "With 4 Symptoms, Male, Non-Hispanic")
-legend(8,0.05, legend=c("Black", "Non-Black"), col=c("black", "red"), lty = c(1,1), cex=0.8)
+legend(8,0.05, legend=c("Black", "Non-Black"), col=c("black", "red"), lty = c(1,1), cex=0.5)
 ```
+
 ###Hispanic
 
 Hispanic patients tend to have a shorter wait time than Non-Hispanic patients.
+
 ```{r echo = F}
 ##select rows in d2
 ##first one to test is only black--> use as baseline?
@@ -228,12 +238,13 @@ hazard2_1 <- hazard2_1*(1-hazard2_base)
 plot(1:total_bins, hazard2_base, type='l', col = "black", ylim=(c(0,0.06)), ylab = "hazard", xlab = "time bins")
 par(new=T)
 plot(1:total_bins, hazard2_1, col = "red",type='l', ylim=(c(0,0.06)), xlab = "time bins", ylab = "hazard", main = "Hispanic vs Non-Hispanic", sub = "With 4 Symptoms, Male, Non-Black")
-legend(8,0.05, legend=c("Hispanic", "Non-Hispanic"), col=c("black", "red"), lty = c(1,1), cex=0.8)
+legend(8,0.05, legend=c("Hispanic", "Non-Hispanic"), col=c("black", "red"), lty = c(1,1), cex=0.5)
 ```
 
 ##Symptoms
 
 Patients who exhibit 4 symptoms have shorter wait times than those who have 3,2, and 1. 
+
 ```{r echo = F}
 ##select rows in d2
 ##first one to test is only black--> use as baseline?
@@ -265,10 +276,15 @@ plot(1:total_bins, hazard2_2, type='l', col = "yellow", ylim=(c(0,0.06)), ylab =
 par(new = T)
 plot(1:total_bins, hazard2_3, col = "green",type='l', ylim=(c(0,0.06)), xlab = "time bins", ylab = "hazard", main = "Symptoms", sub = "With Male, Non-Black, Non-Hispanic")
 
-legend(8,0.05, legend=c("4 Symptoms", "3 Symptoms", "2 Symptoms", "1 Symptom"), col=c("black", "red", "yellow", "green"), lty = c(1,1), cex=0.8)
+legend(8,0.05, legend=c("4 Symptoms", "3 Symptoms", "2 Symptoms", "1 Symptom"), col=c("black", "red", "yellow", "green"), lty = c(1,1), cex=0.5)
 ```
 
 #Recommendations
 Based on the survival function produced from the fitted model, there appears to be a positive bias towards females, Black patients, and non-Hispanic patients. In a perfect world, assesssment bias should only depend on the number of symptoms--intuitively, the more symptoms, the greater urgency, so a shorter wait time. Further qualitative studies should be conducted to understand why neurological assessments favor females, Black, and non-Hispanic patients.
 
 A kernel regression hazard model is dependent on all the observations; a slight change in some observations with high leverage could potentially change the model quite a bit. Reproducing this study on various differing datasets could prove beneficial in discovering a better model. It would be also be interesting to test different percentiles for the binning of the model. <!---In addition, the bump in the hazard plot seems quite peculiar and the cases for those patients should be investigated further.-->
+
+#Appendix A
+```{r echo = F}
+summary(m2)
+```
