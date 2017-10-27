@@ -2,7 +2,6 @@
 title: "Case 2 Part 1"
 author: "Sonia Xu, Grant Goettel, Ian Hua"
 date: "October 18, 2017"
-
 output:
   pdf_document: default
   html_document: default
