@@ -47,10 +47,7 @@ The following data is from a study of time to critical neurological assessment f
 The data set contained information about the amount of time elapsed from arrival at the ER to the assessment, and whether or not the patient received a CT scan. It also contained data about whether each patient was male or female, whether they were black or hispanic or not, and the amount of major symptoms of a stroke they had upon arrival (out of 4 main symptoms). Rather than have four separate indicator variables showing whether they had 1, 2, 3, or 4 symptoms, we created a single numerical variable containing the amount of symptoms.
 
 #Methodology
-To assess the impact of clinical presentation, gender and race on time to neurological assessment, multiple models and analyses were explored to find the best model that fit the data.
-```{r}
-
-```
+To assess the impact of clinical presentation, gender and race on time to neurological assessment, multiple models and analyses were explored to find the best model that fit the data. After exploring Cox Proportional Hazards, Kaplan-Meier Estimate, Random Forest, and Kernel Regression, the Kernel Regression Model seemed to perform the best despite its flaws. We chose 10 bins based on quantiles to account for the uneven frequencies of the data.
 
 #EDA
 
@@ -84,7 +81,7 @@ We decided to create a Kernel Regression model with failure as the response to e
 ##Kernel Regression with 10 Bins
 10 bins were calculated to fit the kernels. The bins are unevenly spaced because the data has a higher concentration of points for the feature nctdel between 0 and 2, even though its range is (0,26.25). We chose 10 bins because we wanted to be careful of the sample size with only 335 observations. If we split that over too many bins, the sample sizes in the individual kernels would be uncomfortably small for regression. The model has fail as the response, a kernel estimation of nctdel with 4 knots, and the features male, black, hispanic, and count_sn. The bin levels are (-Inf,0], (0,0.357], (0.357,0.737], (0.737,0.983], (0.983,1.21], (1.21,1.49], (1.49,1.73], (1.73,2.16], (2.16,2.8], (2.8, Inf]. A summary of the model noted some significance for the feature nctdel (for the full summary, Appendix C).
 
-##binning the data
+##Bins
 
 ```{r echo = F}
 # set up the kernels
@@ -93,8 +90,6 @@ quants <- quantile(kelly$nctdel, probs = seq(0,1,length.out = 10))
 bin <- cut(kelly$nctdel, c(-1,quants))
 levels(bin) <- seq(1:nlevels(bin))
 ```
-
-
 
 
 ```{r, echo = F}
@@ -130,6 +125,7 @@ summary(m)
 beta <- coef(m)
 hazard <- exp(beta)/(1+exp(beta))
 plot(1:total_bins, hazard, type='l')
+
 # this is pretty ugly. Let's smooth it out with kernel regression.
 # set up the kernels
 kernels <- 4
@@ -171,7 +167,7 @@ To understand how well the model fits, we performed goodness of fit tests and a 
 par(mfrow = c(2,2))
 plot(m2)
 ```
-Looking at the Residuals vs. Fitted Graph, the points do not exhibit a pattern. However, the points are not evenly distrbuted, so they are heteroscedastic. Similarly, with Residuals vs. Leverage, the points are not homoscedastically distributed. While this model better fits the data than previous models, this model can also be improved. 
+Looking at the Residuals vs. Fitted Graph, the points do not exhibit a pattern. However, the points are not evenly distrbuted, so they are heteroscedastic. Similarly, with Residuals vs. Leverage, the points are not homoscedastically distributed.
 ```{r echo = F}
 X.test <- kelly %>% select(male, black, hisp, count_sn)
 
@@ -190,12 +186,11 @@ Overall, the model fits the true dataset `r m*100`% of the time when predicting 
 ##select rows in 
 hazard.logodds <- predict(m2, newdata = data.frame(d2))
 
-
 ###change to assess different survival functions
 
-length(total_bins)
-hazard <- exp(hazard.logodds)/(1+exp(hazard.logodds))
-plot(1:total_bins, hazard, type='l')
+length(hazard.logodds)
+hazard2 <- exp(hazard.logodds)/(1+exp(hazard.logodds))
+plot(1:total_bins, hazard2, type='l')
 # you can choose different numbers of kernels or even use un-evenly spaced kernels to capture more detail early on where you have more data.
 ```
 
