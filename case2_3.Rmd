@@ -172,7 +172,10 @@ Overall, the model fits the true dataset `r m*100`% of the time when predicting 
 ##Discussion
 ###CREATE HAZARD --> y is the binned time at failure
 ```{r}
-##select rows in 
+##select rows in d2
+##first one to test is only black--> use as baseline?
+
+
 hazard.logodds <- predict(m2, newdata = data.frame(d2))
 
 
